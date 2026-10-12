@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Piston Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+canvas{width:100%;max-width:420px;height:auto;display:block;border-radius:12px;background:var(--soft)}
+.stage{display:grid;justify-items:center;gap:8px}
+.revealed{display:grid;gap:8px}
+.adi{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.cell{background:var(--soft);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.cell span{color:var(--muted);font-size:.85rem}
+.cell b{font-family:var(--f-num);font-size:1.25rem}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Piston Lab</h1><p>When a reaction makes or uses gas, it pushes or pulls the piston. That work is why ΔU and ΔH are slightly different.</p></div>
+    <span class="badge">Chapter 6.4 · Lesson 3</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="piston">1 · Gas and piston</button>
+    <button type="button" data-tab="practice">2 · Δn practice</button>
+    <button type="button" data-tab="check">3 · Quick check</button>
+  </nav>
+
+  <section class="tab card" id="piston">
+    <div class="how"><ol>
+      <li>Choose a reaction. Count the moles of <b>gas</b> on each side.</li>
+      <li>Type your Δn, then press <b>Run the reaction</b> and watch the piston.</li>
+      <li>Press <b>Next step</b> to find ΔU, one step at a time.</li>
+    </ol></div>
+    <div class="chips" id="rxList"></div>
+    <div class="eq" id="pxEq"></div>
+    <div class="grid2">
+      <div class="stage">
+        <canvas id="cyl" width="420" height="300" aria-label="Cylinder with a movable piston"></canvas>
+        <span id="pistonTxt" style="color:var(--muted)">Before the reaction</span>
+      </div>
+      <div style="display:grid;gap:12px">
+        <div class="row">
+          <label class="field" for="dnGuess">My Δn (moles of gas)<input type="number" id="dnGuess" step="0.5"></label>
+          <button type="button" class="btn" id="run" style="align-self:end">Run the reaction</button>
+        </div>
+        <p class="feedback info" id="dnFb">Δn = moles of gas in the products − moles of gas in the reactants. Only count (g)!</p>
+        <ul class="steps revealed" id="pxSteps"></ul>
+        <div class="row"><button type="button" class="btn ghost" id="next">Next step</button><button type="button" class="btn ghost" id="again">Start again</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab card" id="practice" hidden>
+    <div class="how"><ol>
+      <li>Read the reaction. Count the moles of <b>gas (g)</b> only.</li>
+      <li>Type Δn and choose what the piston does. Press <b>Check</b>.</li>
+      <li>Get 8 correct. Press <b>New reaction</b> for the next one.</li>
+    </ol></div>
+    <div class="eq" id="prEq"></div>
+    <div class="row">
+      <label class="field" for="prDn">Δn<input type="number" id="prDn" step="0.5"></label>
+      <label class="field" for="prPis">The piston…<select id="prPis"><option value="">choose…</option><option value="up">moves up</option><option value="down">moves down</option><option value="still">stays still</option></select></label>
+      <label class="field" for="prCmp">ΔU compared with ΔH<select id="prCmp"><option value="">choose…</option><option value="same">ΔU = ΔH</option><option value="diff">ΔU ≠ ΔH</option></select></label>
+    </div>
+    <div class="row"><button type="button" class="btn" id="prCheck">Check</button><button type="button" class="btn ghost" id="prNew">New reaction</button></div>
+    <p class="feedback info" id="prFb">Δn = moles of gas in the products − moles of gas in the reactants.</p>
+    <p class="score">Correct: <span id="prScore">0</span> / 8</p>
+  </section>
+
+  <section class="tab card" id="check" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
+    <div class="quiz" id="quiz"></div>
+    <button type="button" class="btn ghost" id="qReset">Try again</button>
+  </section>
+
+  <div class="card keybox">
+    <div><b>Symbol key:</b> <b>U</b> = internal energy · <b>ΔU = q + w</b> (first law) · <b>q</b> = heat · <b>w</b> = work (+ when the gas is squeezed, − when the gas pushes out) · <b>Δn</b> = moles of gas in products − moles of gas in reactants · <b>R</b> = 8.314 J/(K·mol) = 0.008314 kJ/(K·mol) · <b>T</b> = temperature in kelvin (25 °C = 298 K)</div>
+    <div><b>Key equation:</b> <span class="num">ΔU = ΔH − RTΔn</span> · if Δn = 0, then ΔU = ΔH</div>
+  </div>
+  <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 241–246). Grade 11 Chemistry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// multiple-choice quiz builder
+function buildQuiz(el,qs,scoreEl){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+const css=(v)=>getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#888';
+const RT=0.008314*298;
+const RXS=[
+ {n:"Sodium + water",e:"2Na(s) + 2H2O(l) → 2NaOH(aq) + H2(g)",dH:-367.5,gr:0,gp:1},
+ {n:"Carbon monoxide burns",e:"2CO(g) + O2(g) → 2CO2(g)",dH:-566.0,gr:3,gp:2},
+ {n:"Hydrogen + chlorine",e:"H2(g) + Cl2(g) → 2HCl(g)",dH:-184.6,gr:2,gp:2},
+ {n:"Making carbon monoxide",e:"C(graphite) + ½O2(g) → CO(g)",dH:-110.5,gr:0.5,gp:1},
+ {n:"Methane + iodine",e:"CH4(g) + I2(g) → CH3I(g) + HI(g)",dH:23.0,gr:2,gp:2},
+];
+let ri=1,phase=0,step=0,anim=null,pistonY=0,targetY=0,parts=[];
+const cv=document.getElementById('cyl'),cx=cv.getContext('2d');
+function pistonFor(g){return 250-60-g*45;} // more gas -> piston higher (smaller y)
+function makeParts(g){const k=Math.max(0,Math.round(g*6));parts=[];for(let i=0;i<k;i++)parts.push({x:80+Math.random()*260,y:0,vx:(Math.random()-.5)*2.2,vy:(Math.random()-.5)*2.2,f:Math.random()});}
+function drawCyl(){
+ const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);
+ const ink=css('--ink'),acc=css('--accent'),line=css('--line'),muted=css('--muted');
+ pistonY+= (targetY-pistonY)*0.06;
+ // cylinder
+ cx.strokeStyle=ink;cx.lineWidth=3;cx.beginPath();cx.moveTo(60,20);cx.lineTo(60,270);cx.lineTo(360,270);cx.lineTo(360,20);cx.stroke();
+ // liquid/solid layer
+ cx.fillStyle=line;cx.fillRect(62,250,296,18);
+ // piston
+ cx.fillStyle=muted;cx.fillRect(62,pistonY-14,296,14);cx.fillRect(200,pistonY-60,20,46);
+ cx.fillStyle=ink;cx.font='600 14px Lexend, system-ui, sans-serif';cx.fillText('piston',230,pistonY-30);
+ // air arrows
+ cx.strokeStyle=muted;cx.lineWidth=2;for(const ax of [110,310]){cx.beginPath();cx.moveTo(ax,pistonY-55);cx.lineTo(ax,pistonY-22);cx.stroke();cx.beginPath();cx.moveTo(ax-6,pistonY-30);cx.lineTo(ax,pistonY-20);cx.lineTo(ax+6,pistonY-30);cx.stroke();}
+ cx.fillStyle=muted;cx.font='12px Lexend, system-ui, sans-serif';cx.fillText('air pressure',72,pistonY-60);
+ // particles
+ const top=pistonY+6,bot=244;
+ cx.fillStyle=acc;
+ for(const p of parts){ if(!p.y)p.y=top+p.f*(bot-top);
+  p.x+=p.vx;p.y+=p.vy; if(p.x<70||p.x>350)p.vx*=-1; if(p.y<top){p.y=top;p.vy=Math.abs(p.vy);} if(p.y>bot){p.y=bot;p.vy=-Math.abs(p.vy);}
+  cx.beginPath();cx.arc(p.x,p.y,6,0,Math.PI*2);cx.fill();}
+ anim=requestAnimationFrame(drawCyl);
+}
+function setRx(i){
+ ri=i;phase=0;step=0;const r=RXS[i];
+ [...document.getElementById('rxList').children].forEach((c,k)=>c.setAttribute('aria-pressed',k===i));
+ document.getElementById('pxEq').textContent=chem(r.e)+'      ΔH = '+(r.dH>0?'+':'−')+Math.abs(r.dH).toFixed(1)+' kJ/mol';
+ pistonY=targetY=pistonFor(r.gr);makeParts(r.gr);
+ document.getElementById('pistonTxt').textContent=`Before: ${r.gr} mol of gas`;
+ document.getElementById('pxSteps').innerHTML='';document.getElementById('dnGuess').value='';
+ const fb=document.getElementById('dnFb');fb.className='feedback info';fb.textContent='Δn = moles of gas in the products − moles of gas in the reactants. Only count (g)!';
+ document.getElementById('next').disabled=true;
+}
+const rl=document.getElementById('rxList');
+RXS.forEach((r,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=r.n;b.onclick=()=>setRx(i);rl.appendChild(b);});
+document.getElementById('run').onclick=()=>{
+ const r=RXS[ri],dn=r.gp-r.gr,gv=document.getElementById('dnGuess').value,fb=document.getElementById('dnFb');
+ if(gv===''){fb.className='feedback bad';fb.textContent='Type your Δn first. Count only the gases (g).';return;}
+ fb.className='feedback '+(Math.abs(+gv-dn)<1e-9?'ok':'bad');
+ fb.textContent=(Math.abs(+gv-dn)<1e-9?'Correct! ':'Not quite. ')+`Gas: products ${r.gp} mol − reactants ${r.gr} mol, so Δn = ${dn>0?'+':''}${dn}.`;
+ targetY=pistonFor(r.gp);makeParts(r.gp);phase=1;step=0;
+ document.getElementById('pistonTxt').textContent=dn>0?`After: ${r.gp} mol of gas. The piston moves UP.`:dn<0?`After: ${r.gp} mol of gas. The piston moves DOWN.`:`After: ${r.gp} mol of gas. The piston does not move.`;
+ document.getElementById('pxSteps').innerHTML='';document.getElementById('next').disabled=false;nextStep();
+};
+function nextStep(){
+ const r=RXS[ri],dn=r.gp-r.gr,rtn=RT*dn,dU=r.dH-rtn,ul=document.getElementById('pxSteps');
+ const S=[
+  `Δn = ${r.gp} − ${r.gr} = <span class="num">${dn>0?'+':''}${dn}</span>`,
+  dn>0?'The gas pushes the air back: the system does work on the surroundings (w is negative). Some energy leaves as work.':dn<0?'The air pushes the piston down: the surroundings do work on the system (w is positive).':'The piston does not move: no work is done, so ΔU = ΔH.',
+  `RTΔn = 0.008314 × 298 × ${dn} = <span class="num">${rtn===0?'0':(rtn>0?'+':'−')+Math.abs(rtn).toFixed(2)} kJ/mol</span>`,
+  `ΔU = ΔH − RTΔn = ${r.dH.toFixed(1).replace('-','−')} − (${rtn.toFixed(2).replace('-','−')}) = <span class="num"><b>${(dU>0?'+':'−')+Math.abs(dU).toFixed(1)} kJ/mol</b></span>`,
+  `Compare: ΔH = ${r.dH.toFixed(1).replace('-','−')} and ΔU = ${dU.toFixed(1).replace('-','−')} kJ/mol. ${dn===0?'They are the same.':'They are almost the same: the difference is the work done by or on the gas.'}`
+ ];
+ if(step<S.length){const li=document.createElement('li');li.innerHTML=`<b class="n">${'①②③④⑤'[step]}</b><span>${S[step]}</span>`;ul.appendChild(li);step++;}
+ document.getElementById('next').disabled=step>=S.length;
+}
+document.getElementById('next').onclick=nextStep;
+document.getElementById('again').onclick=()=>setRx(ri);
+
+// Δn practice
+const PR=[
+ {e:"N2(g) + 3H2(g) → 2NH3(g)",r:4,p:2},{e:"2H2O(l) → 2H2(g) + O2(g)",r:0,p:3},{e:"H2(g) + Cl2(g) → 2HCl(g)",r:2,p:2},
+ {e:"CH4(g) + 2O2(g) → CO2(g) + 2H2O(l)",r:3,p:1},{e:"CaCO3(s) → CaO(s) + CO2(g)",r:0,p:1},{e:"2CO(g) + O2(g) → 2CO2(g)",r:3,p:2},
+ {e:"2Na(s) + 2H2O(l) → 2NaOH(aq) + H2(g)",r:0,p:1},{e:"CH4(g) + I2(g) → CH3I(g) + HI(g)",r:2,p:2},{e:"C3H8(g) + 5O2(g) → 3CO2(g) + 4H2O(l)",r:6,p:3},
+ {e:"2SO2(g) + O2(g) → 2SO3(g)",r:3,p:2},{e:"H2O(s) → H2O(l)",r:0,p:0},{e:"2NaHCO3(s) → Na2CO3(s) + H2O(g) + CO2(g)",r:0,p:2}];
+let pi=0,prScore=0,prDone=false;
+function newPr(){pi=(pi+1+Math.floor(Math.random()*(PR.length-1)))%PR.length;prDone=false;
+ document.getElementById('prEq').textContent=chem(PR[pi].e);['prDn','prPis','prCmp'].forEach(id=>document.getElementById(id).value='');
+ const f=document.getElementById('prFb');f.className='feedback info';f.textContent='Δn = moles of gas in the products − moles of gas in the reactants.';}
+document.getElementById('prNew').onclick=newPr;
+document.getElementById('prCheck').onclick=()=>{
+ const r=PR[pi],dn=r.p-r.r,v=document.getElementById('prDn').value,ps=document.getElementById('prPis').value,cm=document.getElementById('prCmp').value,f=document.getElementById('prFb');
+ if(v===''||!ps||!cm){f.className='feedback bad';f.textContent='Answer all three parts first.';return;}
+ const want=dn>0?'up':dn<0?'down':'still',wc=dn===0?'same':'diff';
+ const ok=Math.abs(+v-dn)<1e-9&&ps===want&&cm===wc;
+ if(ok&&!prDone){prScore=Math.min(8,prScore+1);document.getElementById('prScore').textContent=prScore;}
+ prDone=true;f.className='feedback '+(ok?'ok':'bad');
+ f.textContent=(ok?'Correct! ':'Not quite. ')+`Gas: products ${r.p} − reactants ${r.r}, so Δn = ${dn>0?'+':''}${dn}. The piston ${want==='up'?'moves up (gas pushes the air back, work is done BY the system)':want==='down'?'moves down (the air pushes in, work is done ON the system)':'stays still (no work)'}. ${dn===0?'So ΔU = ΔH.':'So ΔU is a little different from ΔH.'}`;
+};
+const QS=[
+ {dok:1,q:"What does Δn mean?",o:["moles of all products − moles of all reactants","moles of GAS in products − moles of GAS in reactants","change in mass"],a:1,why:"Only gases are counted, because only gases push the piston."},
+ {dok:1,q:"A reaction makes more gas than it uses. The piston…",o:["moves up","moves down","stays still"],a:0,why:"More gas pushes the air back: the piston moves up and the system does work."},
+ {dok:2,q:"For 2CO(g) + O2(g) → 2CO2(g), what is Δn?",o:["+1","0","−1","−3"],a:2,why:"Gas: products 2 − reactants 3 = −1."},
+ {dok:2,q:"58 J of work is done to compress a gas and 79 J of heat is released. What is ΔU?",o:["+137 J","+21 J","−21 J","−137 J"],a:2,why:"ΔU = q + w = (−79) + (+58) = −21 J."},
+ {dok:2,q:"H2(g) + Cl2(g) → 2HCl(g)  ΔH = −184.6 kJ. What is ΔU?",o:["−184.6 kJ","−187.1 kJ","−182.1 kJ"],a:0,why:"Δn = 2 − 2 = 0, so RTΔn = 0 and ΔU = ΔH."},
+ {dok:3,q:"Which change at constant pressure has the SMALLEST difference between ΔU and ΔH?",o:["water → water vapour","water → ice","ice → water vapour"],a:1,why:"No gas forms when water freezes, so the volume change and the work are tiny: ΔU ≈ ΔH."},
+];
+function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
+document.getElementById('qReset').addEventListener('click',quiz);
+setupTabs();setRx(1);drawCyl();newPr();quiz();
+</script>
+
+</html>

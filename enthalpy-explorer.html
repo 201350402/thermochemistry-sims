@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enthalpy Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+.flow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.flow svg{max-width:100%}
+@media (max-width:520px){.flow{grid-template-columns:1fr}.therm{height:110px}}
+.therm{width:46px;height:170px;position:relative;border:2px solid var(--ink);border-radius:23px 23px 23px 23px;background:var(--surface);overflow:hidden}
+.therm .fill{position:absolute;left:0;right:0;bottom:0;height:50%;background:var(--muted);transition:height 1.2s ease, background .6s}
+.therm-wrap{display:grid;justify-items:center;gap:4px;font-size:.8rem;color:var(--muted);text-align:center}
+.heat-dash{stroke-dasharray:8 8;animation:flow 0.9s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-16}}
+.proc .chip{display:grid;gap:2px}
+.proc .chip small{color:var(--muted);font-family:var(--f-num)}
+.task{display:flex;gap:8px;align-items:center}
+.task .tick{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;color:var(--ok)}
+.task.done .tick{border-color:var(--ok);background:var(--ok-soft)}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Enthalpy Explorer</h1><p>Predict where the heat goes, watch it move, then build your own ΔH.</p></div>
+    <span class="badge">Chapter 6.4 · Lesson 1</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="predict">1 · Predict and watch</button>
+    <button type="button" data-tab="build">2 · Build your own ΔH</button>
+    <button type="button" data-tab="check">3 · Quick check</button>
+  </nav>
+
+  <section class="tab card" id="predict">
+    <div class="how"><ol>
+      <li>Tap a process.</li>
+      <li>Predict: is it <b>exothermic</b> or <b>endothermic</b>?</li>
+      <li>Watch the heat move and read the enthalpy diagram.</li>
+    </ol></div>
+    <div class="chips proc" id="procList"></div>
+    <div class="eq" id="pEq">Choose a process above.</div>
+    <div class="row" id="pBtns">
+      <span>My prediction:</span>
+      <button type="button" class="btn exo" id="pExo">Exothermic (ΔH −)</button>
+      <button type="button" class="btn endo" id="pEndo">Endothermic (ΔH +)</button>
+    </div>
+    <p class="feedback info" id="pFb">Pick a process, then make your prediction.</p>
+    <div class="grid2" id="pResult" hidden>
+      <div class="card" style="padding:12px">
+        <h3>Heat flow</h3>
+        <div class="flow">
+          <svg viewBox="0 0 300 180" id="flowSvg" role="img" aria-label="System and surroundings"></svg>
+          <div class="therm-wrap"><div class="therm"><div class="fill" id="thermFill"></div></div><span id="thermTxt">surroundings</span></div>
+        </div>
+      </div>
+      <div class="card" style="padding:12px">
+        <h3>Enthalpy diagram</h3>
+        <div id="pDiag"></div>
+      </div>
+    </div>
+    <p class="score">Correct predictions: <span id="pScore">0</span></p>
+  </section>
+
+  <section class="tab card" id="build" hidden>
+    <div class="how"><ol>
+      <li>Move the sliders to set the enthalpy of the reactants and the products.</li>
+      <li>Read ΔH = H(products) − H(reactants).</li>
+      <li>Complete the 4 missions below.</li>
+    </ol></div>
+    <div class="grid2">
+      <div style="display:grid;gap:14px">
+        <label class="field" for="hr">H(reactants): <span class="num" id="hrV"></span>
+          <input type="range" id="hr" min="0" max="200" step="10" value="150"></label>
+        <label class="field" for="hp">H(products): <span class="num" id="hpV"></span>
+          <input type="range" id="hp" min="0" max="200" step="10" value="50"></label>
+        <ul class="steps" id="bSteps"></ul>
+        <p class="feedback info" id="bank"></p>
+      </div>
+      <div id="bDiag"></div>
+    </div>
+    <h3>Missions</h3>
+    <div id="missions" style="display:grid;gap:8px"></div>
+  </section>
+
+  <section class="tab card" id="check" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
+    <div class="quiz" id="quiz"></div>
+    <button type="button" class="btn ghost" id="qReset">Try again</button>
+  </section>
+
+  <div class="card keybox">
+    <div><b>Symbol key:</b> <b>H</b> = enthalpy, the heat content of a system · <b>Δ</b> = “change in” (final − initial) · <b>ΔH</b> = H(products) − H(reactants) · <b>kJ</b> = kilojoule = 1000 J · <b>(s) (l) (g) (aq)</b> = solid, liquid, gas, dissolved in water</div>
+    <div><span class="tag exo">ΔH NEGATIVE</span> exothermic: heat is released, surroundings get warmer · <span class="tag endo">ΔH POSITIVE</span> endothermic: heat is absorbed, surroundings get colder</div>
+  </div>
+  <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 242–245). Grade 11 Chemistry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// multiple-choice quiz builder
+function buildQuiz(el,qs,scoreEl){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+const PROC=[
+ {n:"Ice melts",e:"H2O(s) → H2O(l)",dH:6.01,r:"H2O(s)",p:"H2O(l)"},
+ {n:"Water freezes",e:"H2O(l) → H2O(s)",dH:-6.01,r:"H2O(l)",p:"H2O(s)"},
+ {n:"Natural gas (methane) burns",e:"CH4(g) + 2O2(g) → CO2(g) + 2H2O(l)",dH:-890.4,r:"CH4 + 2O2",p:"CO2 + 2H2O"},
+ {n:"Liquid water turns to vapour",e:"2H2O(l) → 2H2O(g)",dH:88.0,r:"2H2O(l)",p:"2H2O(g)"},
+ {n:"Sodium reacts with water",e:"2Na(s) + 2H2O(l) → 2NaOH(aq) + H2(g)",dH:-367.5,r:"2Na + 2H2O",p:"2NaOH + H2"},
+ {n:"Making methane back (reverse)",e:"CO2(g) + 2H2O(l) → CH4(g) + 2O2(g)",dH:890.4,r:"CO2 + 2H2O",p:"CH4 + 2O2"},
+];
+let cur=null,score=0,answered=new Set();
+const list=document.getElementById('procList');
+PROC.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed','false');
+ b.innerHTML=`<span>${p.n}</span><small>${chem(p.e)}</small>`;
+ b.addEventListener('click',()=>{cur=i;[...list.children].forEach((c,k)=>c.setAttribute('aria-pressed',k===i?'true':'false'));
+   document.getElementById('pEq').textContent=chem(p.e)+'      ΔH = ?';
+   document.getElementById('pResult').hidden=true;
+   const fb=document.getElementById('pFb');fb.className='feedback info';fb.textContent='Now make your prediction.';});
+ list.appendChild(b);});
+function flowSvg(exo){
+ const c=exo?'exo':'endo';
+ const a=exo?`<line class="arr-${c} heat-dash" x1="190" y1="90" x2="270" y2="90"/><polygon class="head-${c}" points="262,80 262,100 282,90"/><line class="arr-${c} heat-dash" x1="110" y1="90" x2="30" y2="90"/><polygon class="head-${c}" points="38,80 38,100 18,90"/>`
+   :`<line class="arr-${c} heat-dash" x1="270" y1="90" x2="200" y2="90"/><polygon class="head-${c}" points="208,80 208,100 188,90"/><line class="arr-${c} heat-dash" x1="30" y1="90" x2="100" y2="90"/><polygon class="head-${c}" points="92,80 92,100 112,90"/>`;
+ return `<rect x="1" y="1" width="298" height="178" rx="12" fill="none" stroke="var(--line)" stroke-width="2"/>
+  <text x="150" y="22" text-anchor="middle" font-size="13">Surroundings (air, water, your hand)</text>
+  <rect x="105" y="55" width="90" height="70" rx="10" style="fill:var(--soft);stroke:var(--accent)" stroke-width="2"/>
+  <text x="150" y="88" text-anchor="middle" font-size="14" font-weight="700">System</text>
+  <text x="150" y="106" text-anchor="middle" font-size="11">the chemicals</text>${a}
+  <text x="150" y="160" text-anchor="middle" font-size="13" class="lbl-${c}">${exo?'heat OUT of the system':'heat INTO the system'}</text>`;
+}
+function predict(guessExo){
+ if(cur===null){const fb=document.getElementById('pFb');fb.className='feedback bad';fb.textContent='First tap a process.';return;}
+ const p=PROC[cur],exo=p.dH<0,right=guessExo===exo;
+ if(right&&!answered.has(cur)){score++;}answered.add(cur);
+ document.getElementById('pScore').textContent=`${score} of ${answered.size} tried`;
+ const fb=document.getElementById('pFb');
+ fb.className='feedback '+(right?'ok':'bad');
+ fb.textContent=(right?'Correct! ':'Not quite. ')+`ΔH = ${fmt(p.dH,p.dH%1?(Math.abs(p.dH)<10?2:1):1)} kJ/mol. ΔH is ${exo?'negative, so heat leaves the system: the change is EXOTHERMIC and the surroundings get warmer.':'positive, so heat enters the system: the change is ENDOTHERMIC and the surroundings get colder.'}`;
+ document.getElementById('pEq').textContent=chem(p.e)+'      ΔH = '+fmt(p.dH,Math.abs(p.dH)<10?2:1)+' kJ/mol';
+ document.getElementById('flowSvg').innerHTML=flowSvg(exo);
+ const f=document.getElementById('thermFill');f.style.height='50%';f.style.background='var(--muted)';
+ requestAnimationFrame(()=>setTimeout(()=>{f.style.height=exo?'88%':'14%';f.style.background=exo?'var(--exo)':'var(--endo)';},60));
+ document.getElementById('thermTxt').textContent=exo?'surroundings: warmer':'surroundings: colder';
+ const Hr=exo?100:20,Hp=exo?20:100;
+ document.getElementById('pDiag').innerHTML=diagram(Hr,Hp,chem(p.r),chem(p.p),'ΔH = '+fmt(p.dH,Math.abs(p.dH)<10?2:1)+' kJ');
+ document.getElementById('pResult').hidden=false;
+}
+document.getElementById('pExo').addEventListener('click',()=>predict(true));
+document.getElementById('pEndo').addEventListener('click',()=>predict(false));
+
+// build
+const MISS=[
+ {t:"Make an exothermic change with ΔH = −50 kJ",ok:(r,p)=>p-r===-50},
+ {t:"Make an endothermic change with ΔH = +30 kJ",ok:(r,p)=>p-r===30},
+ {t:"Make ΔH = 0 kJ (no heat change)",ok:(r,p)=>p===r},
+ {t:"Make the biggest exothermic change possible",ok:(r,p)=>p-r===-200},
+];
+const doneM=new Set();
+function build(){
+ const r=+document.getElementById('hr').value,p=+document.getElementById('hp').value,d=p-r;
+ document.getElementById('hrV').textContent=r+' kJ';document.getElementById('hpV').textContent=p+' kJ';
+ const kind=d<0?'<span class="tag exo">EXOTHERMIC</span> heat is released':d>0?'<span class="tag endo">ENDOTHERMIC</span> heat is absorbed':'no change in enthalpy';
+ document.getElementById('bSteps').innerHTML=`<li><b class="n">①</b><span>ΔH = H(products) − H(reactants)</span></li>
+   <li><b class="n">②</b><span class="num">ΔH = ${p} − ${r} = ${d>0?'+':''}${d===0?0:(d<0?'−'+Math.abs(d):d)} kJ</span></li>
+   <li><b class="n">③</b><span>${kind}</span></li>`;
+ document.getElementById('bank').innerHTML=`<b>Bank account idea:</b> you start with ${r} dirhams and end with ${p} dirhams. Change = ${p} − ${r} = ${d<0?'−'+Math.abs(d):(d>0?'+'+d:'0')}. ${d<0?'Money left your account, like heat leaving the system.':d>0?'Money came in, like heat entering the system.':'Your balance did not change.'}`;
+ document.getElementById('bDiag').innerHTML=diagram(r,p,'reactants','products','ΔH = '+(d<0?'−'+Math.abs(d):'+'+d)+' kJ');
+ MISS.forEach((m,i)=>{if(m.ok(r,p))doneM.add(i);});
+ document.getElementById('missions').innerHTML=MISS.map((m,i)=>`<div class="task ${doneM.has(i)?'done':''}"><span class="tick">${doneM.has(i)?'✓':''}</span><span>${m.t}</span></div>`).join('')+
+   `<p class="score">${doneM.size} / ${MISS.length} missions complete</p>`;
+}
+['hr','hp'].forEach(id=>document.getElementById(id).addEventListener('input',build));
+
+const QS=[
+ {dok:1,q:"What does the symbol Δ (delta) mean?",o:["heat","change in (final − initial)","pressure","enthalpy"],a:1,why:"Δ always means “change in”: final value minus initial value."},
+ {dok:1,q:"ΔH is negative. The process is…",o:["endothermic, heat absorbed","exothermic, heat released","neither"],a:1,why:"Negative ΔH means the system loses heat to the surroundings."},
+ {dok:1,q:"H(reactants) = 120 kJ and H(products) = 200 kJ. What is ΔH?",o:["+80 kJ","−80 kJ","+320 kJ","−320 kJ"],a:0,why:"ΔH = 200 − 120 = +80 kJ (endothermic)."},
+ {dok:2,q:"Ice melts in your hand and your hand feels cold. Which is correct?",o:["The ice releases cold into your hand.","The ice (system) absorbs heat from your hand, so ΔH is positive.","Your hand gains heat, so ΔH is negative."],a:1,why:"Cold is not a substance. The ice takes heat from the surroundings: endothermic, ΔH = +6.01 kJ/mol."},
+ {dok:2,q:"On an enthalpy diagram the products are LOWER than the reactants. The arrow points…",o:["up, ΔH positive","down, ΔH negative","sideways, ΔH zero"],a:1,why:"Products lower → energy released → arrow down → ΔH negative."},
+ {dok:3,q:"Why is ΔH equal to the heat (q) for a reaction in an open beaker?",o:["Because the volume is constant","Because the pressure is constant (qp = ΔH)","Because no gas is made"],a:1,why:"An open beaker is at constant (atmospheric) pressure, and at constant pressure the heat change qp = ΔH."},
+];
+function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
+document.getElementById('qReset').addEventListener('click',quiz);
+setupTabs();build();quiz();
+</script>
+
+</html>

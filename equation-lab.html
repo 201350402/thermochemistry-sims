@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thermochemical Equation Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+.machine{display:grid;gap:12px}
+.dh-out{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.log{margin:0;padding-left:1.2em;display:grid;gap:4px;color:var(--muted)}
+.log li b{color:var(--ink)}
+.target{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.target .eq{padding:6px 10px;font-size:.92rem}
+.target .st{font-weight:700;color:var(--muted)}
+.target.done{border-color:var(--ok);background:var(--ok-soft)}
+.target.done .st{color:var(--ok)}
+.heatbar{height:22px;border-radius:999px;background:var(--soft);overflow:hidden;border:1px solid var(--line)}
+.heatbar div{height:100%;transition:width .6s ease}
+@media (max-width:560px){.target{grid-template-columns:1fr}}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Thermochemical Equation Lab</h1><p>Change an equation and watch ΔH follow the rules. Then turn grams into kilojoules.</p></div>
+    <span class="badge">Chapter 6.4 · Lesson 2</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="rules">1 · Rule machine</button>
+    <button type="button" data-tab="grams">2 · Grams → kJ</button>
+    <button type="button" data-tab="check">3 · Quick check</button>
+  </nav>
+
+  <section class="tab card" id="rules">
+    <div class="how"><ol>
+      <li>Choose a starting equation.</li>
+      <li>Press the buttons. Watch what happens to the equation and to ΔH.</li>
+      <li>Missions: predict ΔH first, then build the equation to test your answer.</li>
+    </ol></div>
+    <div class="row">
+      <button type="button" class="chip" id="bIce" aria-pressed="true">Melting ice (ΔH = +6.01 kJ)</button>
+      <button type="button" class="chip" id="bCh4" aria-pressed="false">Burning methane (ΔH = −890.4 kJ)</button>
+    </div>
+    <div class="machine">
+      <div class="eq" id="rEq"></div>
+      <div class="dh-out"><span>ΔH =</span><span class="big" id="rDh"></span><span id="rTag"></span></div>
+      <div class="row">
+        <button type="button" class="btn" id="x2">Multiply × 2</button>
+        <button type="button" class="btn" id="d2">Divide ÷ 2</button>
+        <button type="button" class="btn" id="rev">Reverse ⇄</button>
+        <button type="button" class="btn ghost" id="gas">Make water a gas</button>
+        <button type="button" class="btn ghost" id="reset">Reset</button>
+      </div>
+      <p class="feedback info" id="rFb">Press a button to change the equation.</p>
+    </div>
+    <h3>Missions: predict, then test</h3>
+    <div id="targets" style="display:grid;gap:8px"></div>
+  </section>
+
+  <section class="tab card" id="grams" hidden>
+    <div class="how"><ol>
+      <li>Choose a reaction and type a mass in grams.</li>
+      <li>“Show me” mode: read the 3 steps. “Test me” mode: work it out first, then check.</li>
+    </ol></div>
+    <div class="row" id="gList"></div>
+    <div class="eq" id="gEq"></div>
+    <div class="row">
+      <label class="field" for="mass">Mass (g)<input type="number" id="mass" min="0.1" step="0.1" value="87.9"></label>
+      <div class="row" style="align-self:end">
+        <button type="button" class="chip" id="mShow" aria-pressed="true">Show me</button>
+        <button type="button" class="chip" id="mTest" aria-pressed="false">Test me</button>
+      </div>
+    </div>
+    <ul class="steps" id="gSteps"></ul>
+    <div id="gTest" hidden style="display:grid;gap:10px">
+      <div class="row">
+        <label class="field" for="tMol">① moles (mol)<input type="number" id="tMol" step="any"></label>
+        <label class="field" for="tKj">③ heat (kJ, no sign)<input type="number" id="tKj" step="any"></label>
+        <label class="field" for="tDir">④ direction<select id="tDir"><option value="">choose…</option><option value="rel">released</option><option value="abs">absorbed</option></select></label>
+      </div>
+      <button type="button" class="btn" id="tCheck" style="justify-self:start">Check my answer</button>
+      <p class="feedback info" id="tFb">Use the 3 steps on your paper first.</p>
+    </div>
+    <div><div class="row" style="justify-content:space-between"><span id="hbLbl">Heat</span><span class="num" id="hbVal"></span></div><div class="heatbar"><div id="hb"></div></div></div>
+  </section>
+
+  <section class="tab card" id="check" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
+    <div class="quiz" id="quiz"></div>
+    <button type="button" class="btn ghost" id="qReset">Try again</button>
+  </section>
+
+  <div class="card keybox">
+    <div><b>The 3 rules:</b> ① write the states (s) (l) (g) (aq): they change ΔH · ② multiply the equation by n → multiply ΔH by n · ③ reverse the equation → same number, opposite sign</div>
+    <div><b>Symbol key:</b> <b>n</b> = moles (mol) · <b>m</b> = mass (g) · <b>M</b> = molar mass (g/mol) · <b>kJ/mol</b> = kJ for each mole of reaction as written · <b>coefficient</b> = the big number in front of a formula</div>
+  </div>
+  <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 243–246). Grade 11 Chemistry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// multiple-choice quiz builder
+function buildQuiz(el,qs,scoreEl){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+// ---------- rule machine ----------
+const BASES={
+ ice:{R:[[1,'H2O(s)']],P:[[1,'H2O(l)']],dH:6.01,dp:2},
+ ch4:{R:[[1,'CH4(g)'],[2,'O2(g)']],P:[[1,'CO2(g)'],[2,'H2O(l)']],dH:-890.4,dp:1},
+};
+let st={b:'ice',f:1,rev:false,gas:false};
+function coef(c){if(c===1)return '';if(c===0.5)return '½';return String(c);}
+function side(arr){return arr.map(([c,s])=>coef(c*st.f)+s).join(' + ');}
+function curDH(){const B=BASES[st.b];let base=B.dH;if(st.b==='ch4'&&st.gas)base=-802.4;return (st.rev?-1:1)*st.f*base;}
+function eqStr(s=st){const B=BASES[s.b];const fix=(a)=>a.map(([c,x])=>[c,(s.b==='ch4'&&s.gas&&x==='H2O(l)')?'H2O(g)':x]);
+ const sd=(a)=>a.map(([c,x])=>coef(c*s.f)+x).join(' + ');
+ const L=sd(fix(B.R)),Rr=sd(fix(B.P));return s.rev?`${Rr} → ${L}`:`${L} → ${Rr}`;}
+function dhFmt(v,dp){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(dp)+' kJ';}
+function render(msg){
+ const B=BASES[st.b],v=curDH(),dp=B.dp;
+ document.getElementById('rEq').textContent=chem(eqStr());
+ document.getElementById('rDh').textContent=dhFmt(v,dp);
+ document.getElementById('rTag').innerHTML=v<0?'<span class="tag exo">EXOTHERMIC</span>':'<span class="tag endo">ENDOTHERMIC</span>';
+ document.getElementById('gas').disabled=st.b!=='ch4';
+ if(msg){const fb=document.getElementById('rFb');fb.className='feedback info';fb.innerHTML=msg;}
+ checkTargets();
+}
+document.getElementById('x2').onclick=()=>{if(st.f>=4){render('Maximum reached (× 4). Try another button.');return;}st.f*=2;render('<b>Rule 2:</b> you multiplied the equation by 2, so ΔH is multiplied by 2.');};
+document.getElementById('d2').onclick=()=>{if(st.f<=0.5){render('Minimum reached (½). Try another button.');return;}st.f/=2;render('<b>Rule 2:</b> you divided the equation by 2, so ΔH is divided by 2.');};
+document.getElementById('rev').onclick=()=>{st.rev=!st.rev;render('<b>Rule 3:</b> you reversed the equation. ΔH keeps the same number but changes its sign: exothermic ⇄ endothermic.');};
+document.getElementById('gas').onclick=()=>{st.gas=!st.gas;render(st.gas?'<b>Rule 1:</b> the water is now a gas. Less heat is released (−802.4 kJ instead of −890.4 kJ) because 88.0 kJ is needed to turn 2 mol of liquid water into vapour.':'<b>Rule 1:</b> the water is liquid again, so ΔH is −890.4 kJ per mole of methane.');};
+document.getElementById('reset').onclick=()=>{st={b:st.b,f:1,rev:false,gas:false};render('Back to the starting equation.');};
+function pick(b){st={b,f:1,rev:false,gas:false};document.getElementById('bIce').setAttribute('aria-pressed',b==='ice');document.getElementById('bCh4').setAttribute('aria-pressed',b==='ch4');render('New starting equation. Press a button to change it.');}
+document.getElementById('bIce').onclick=()=>pick('ice');document.getElementById('bCh4').onclick=()=>pick('ch4');
+
+const TARGETS=[
+ {s:{b:'ice',f:2,rev:false,gas:false}},
+ {s:{b:'ice',f:1,rev:true,gas:false}},
+ {s:{b:'ch4',f:2,rev:true,gas:false}},
+ {s:{b:'ch4',f:1,rev:false,gas:true}},
+ {s:{b:'ch4',f:0.5,rev:false,gas:false}},
+];
+const tState=TARGETS.map(()=>({pred:null,done:false}));
+function tDH(s){const B=BASES[s.b];let base=B.dH;if(s.b==='ch4'&&s.gas)base=-802.4;return (s.rev?-1:1)*s.f*base;}
+function drawTargets(){
+ document.getElementById('targets').innerHTML=TARGETS.map((t,i)=>`<div class="target ${tState[i].done?'done':''}" id="t${i}">
+   <span class="tag dok">${i+1}</span>
+   <div style="display:grid;gap:6px;min-width:0"><div class="eq">${chem(eqStr(t.s))}</div>
+   <div class="row"><label class="field" for="tp${i}" style="grid-template-columns:auto 1fr;align-items:center">My ΔH (kJ): <input type="number" step="any" id="tp${i}" style="max-width:130px" ${tState[i].pred!==null?`value="${tState[i].pred}"`:''}></label></div></div>
+   <span class="st" id="ts${i}">${tState[i].done?'✓ built and correct':'build it to test'}</span></div>`).join('');
+ TARGETS.forEach((t,i)=>document.getElementById('tp'+i).addEventListener('input',e=>{tState[i].pred=e.target.value===''?null:+e.target.value;}));
+}
+function checkTargets(){
+ TARGETS.forEach((t,i)=>{
+  const same=t.s.b===st.b&&t.s.f===st.f&&t.s.rev===st.rev&&(t.s.b!=='ch4'||t.s.gas===st.gas);
+  if(!same)return;
+  const el=document.getElementById('ts'+i),box=document.getElementById('t'+i),want=tDH(t.s),p=tState[i].pred;
+  if(p===null){el.textContent='Built! Now type your ΔH and build it again.';return;}
+  if(Math.abs(p-want)<=Math.max(0.05,Math.abs(want)*0.005)){tState[i].done=true;box.classList.add('done');el.textContent='✓ built and correct';}
+  else{el.textContent=`Built, but ΔH = ${dhFmt(want,BASES[t.s.b].dp)}. Check your rule.`;}
+ });
+}
+
+// ---------- grams to kJ ----------
+const RX=[
+ {n:"SO₂ → SO₃",e:"2SO2(g) + O2(g) → 2SO3(g)",dH:-198.2,sp:"SO2",M:64.07,c:2,m:87.9},
+ {n:"Methane burns",e:"CH4(g) + 2O2(g) → CO2(g) + 2H2O(l)",dH:-890.4,sp:"CH4",M:16.04,c:1,m:32.08},
+ {n:"Propane burns",e:"C3H8(g) + 5O2(g) → 3CO2(g) + 4H2O(g)",dH:-2220,sp:"C3H8",M:44.10,c:1,m:53.2},
+ {n:"White phosphorus burns",e:"P4(s) + 5O2(g) → P4O10(s)",dH:-3013,sp:"P4",M:123.88,c:1,m:266},
+ {n:"Ice melts",e:"H2O(s) → H2O(l)",dH:6.01,sp:"H2O",M:18.02,c:1,m:36.04},
+];
+let g=0,mode='show';
+const gl=document.getElementById('gList');
+RX.forEach((r,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=r.n;b.setAttribute('aria-pressed',i===0);
+ b.onclick=()=>{g=i;[...gl.children].forEach((c,k)=>c.setAttribute('aria-pressed',k===i));document.getElementById('mass').value=r.m;calc();};gl.appendChild(b);});
+function calc(){
+ const r=RX[g],m=+document.getElementById('mass').value||0,n=m/r.M,per=r.dH/r.c,q=n*per;
+ document.getElementById('gEq').textContent=chem(r.e)+'      ΔH = '+(r.dH>0?'+':'−')+Math.abs(r.dH)+' kJ/mol';
+ const show=mode==='show';
+ document.getElementById('gSteps').innerHTML=show?`
+  <li><b class="n">①</b><span>Moles: n = m ÷ M = ${m} ÷ ${r.M} = <span class="num">${sig(n,3)} mol ${chem(r.sp)}</span></span></li>
+  <li><b class="n">②</b><span>ΔH for 1 mol of ${chem(r.sp)}: ${String(r.dH).replace('-','−')} ÷ ${r.c} = <span class="num">${per.toFixed(Math.abs(per)<10?2:1).replace('-','−')} kJ/mol</span>${r.c>1?' (the equation has '+r.c+' mol '+chem(r.sp)+')':''}</span></li>
+  <li><b class="n">③</b><span>Heat = n × ΔH per mol = <span class="num">${sig(n,3)} × ${Math.abs(per)} = ${sig(Math.abs(q),3)} kJ</span></span></li>
+  <li><b class="n">④</b><span>${q<0?'<span class="tag exo">RELEASED</span> ΔH is negative: heat is given off':'<span class="tag endo">ABSORBED</span> ΔH is positive: heat is taken in'}</span></li>`
+  :`<li><b class="n">①</b><span>n = m ÷ M</span></li><li><b class="n">②</b><span>ΔH for 1 mol = ΔH ÷ coefficient of ${chem(r.sp)}</span></li><li><b class="n">③</b><span>heat = n × ΔH per mol</span></li><li><b class="n">④</b><span>negative = released, positive = absorbed</span></li>`;
+ document.getElementById('gTest').hidden=show;
+ const max=Math.max(...RX.map(x=>Math.abs(x.dH/x.c*x.m/x.M)));
+ const hb=document.getElementById('hb');hb.style.width=show?Math.min(100,Math.abs(q)/max*100)+'%':'0%';hb.style.background=q<0?'var(--exo)':'var(--endo)';
+ document.getElementById('hbLbl').textContent=q<0?'Heat released':'Heat absorbed';
+ document.getElementById('hbVal').textContent=show?sig(Math.abs(q),3)+' kJ':'?';
+}
+document.getElementById('mass').addEventListener('input',calc);
+document.getElementById('mShow').onclick=()=>{mode='show';document.getElementById('mShow').setAttribute('aria-pressed',true);document.getElementById('mTest').setAttribute('aria-pressed',false);calc();};
+document.getElementById('mTest').onclick=()=>{mode='test';document.getElementById('mTest').setAttribute('aria-pressed',true);document.getElementById('mShow').setAttribute('aria-pressed',false);document.getElementById('tFb').className='feedback info';document.getElementById('tFb').textContent='Use the 3 steps on your paper first.';calc();};
+document.getElementById('tCheck').onclick=()=>{
+ const r=RX[g],m=+document.getElementById('mass').value||0,n=m/r.M,q=n*r.dH/r.c;
+ const mo=+document.getElementById('tMol').value,kj=+document.getElementById('tKj').value,dir=document.getElementById('tDir').value;
+ const near=(a,b)=>Math.abs(a-b)<=Math.abs(b)*0.02+0.005;
+ const ok1=near(mo,n),ok2=near(kj,Math.abs(q)),ok3=dir===(q<0?'rel':'abs');
+ const fb=document.getElementById('tFb');
+ if(ok1&&ok2&&ok3){fb.className='feedback ok';fb.textContent=`All correct: ${sig(n,3)} mol, ${sig(Math.abs(q),3)} kJ ${q<0?'released':'absorbed'}.`;mode='show';calc();document.getElementById('gTest').hidden=false;}
+ else{fb.className='feedback bad';fb.textContent=[!ok1?'Check step ① (n = m ÷ M).':'Step ① is correct.',!ok2?'Check step ③ (did you divide ΔH by the coefficient?).':'Step ③ is correct.',!ok3?'Check step ④: what does the sign of ΔH tell you?':'Step ④ is correct.'].join(' ');}
+};
+
+const QS=[
+ {dok:1,q:"You reverse a thermochemical equation. What happens to ΔH?",o:["It stays exactly the same","Same number, opposite sign","It doubles","It becomes zero"],a:1,why:"Rule 3: reversing changes the sign of ΔH."},
+ {dok:1,q:"H2O(s) → H2O(l)  ΔH = +6.01 kJ. What is ΔH for 2H2O(s) → 2H2O(l)?",o:["+6.01 kJ","+3.01 kJ","+12.0 kJ","−12.0 kJ"],a:2,why:"Rule 2: × 2 → 2 × 6.01 = +12.0 kJ."},
+ {dok:1,q:"Why must we write (s), (l), (g) in a thermochemical equation?",o:["To make it look neat","The state changes the value of ΔH","Only gases have enthalpy"],a:1,why:"Rule 1: e.g. −890.4 kJ with liquid water but −802.4 kJ with water vapour."},
+ {dok:2,q:"CH4 + 2O2 → CO2 + 2H2O(l)  ΔH = −890.4 kJ. Heat released by 2.00 mol of CH4?",o:["445.2 kJ","890.4 kJ","1781 kJ","3562 kJ"],a:2,why:"2.00 mol × 890.4 kJ/mol = 1781 kJ released."},
+ {dok:2,q:"2SO2 + O2 → 2SO3  ΔH = −198.2 kJ. What is ΔH for 1 mol of SO2?",o:["−198.2 kJ","−99.1 kJ","−396.4 kJ","+99.1 kJ"],a:1,why:"The equation has 2 mol SO2, so per mole: −198.2 ÷ 2 = −99.1 kJ."},
+ {dok:3,q:"Why is less heat released when methane burns to make water VAPOUR instead of liquid water?",o:["Vapour has less mass","88.0 kJ is needed to turn the liquid water into vapour","Methane burns more slowly"],a:1,why:"2H2O(l) → 2H2O(g) needs +88.0 kJ, so −890.4 + 88.0 = −802.4 kJ."},
+];
+function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
+document.getElementById('qReset').addEventListener('click',quiz);
+setupTabs();drawTargets();render();calc();quiz();
+</script>
+
+</html>

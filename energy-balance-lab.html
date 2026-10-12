@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Energy Balance Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+.sysbox svg{width:100%;max-width:440px;display:block;margin:0 auto}
+.bank{display:grid;gap:6px}
+.bar{height:26px;border-radius:999px;background:var(--soft);border:1px solid var(--line);overflow:hidden;position:relative}
+.bar div{height:100%;background:var(--accent);transition:width .5s ease}
+.bar span{position:absolute;inset:0;display:grid;place-items:center;font:700 .85rem var(--f-num);color:var(--ink)}
+.sel{display:flex;gap:6px;flex-wrap:wrap}
+.sel button{font:600 1rem var(--f-num);min-width:52px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.sel button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.task{display:flex;gap:8px;align-items:center}
+.task .tick{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;color:var(--ok)}
+.task.done .tick{border-color:var(--ok);background:var(--ok-soft)}
+.pathbar{display:flex;height:34px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.pathbar div{flex:none;display:grid;place-items:center;font:700 .8rem var(--f-num);color:#fff;transition:width .4s ease;white-space:nowrap;overflow:hidden}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Energy Balance Lab</h1><p>Energy can enter or leave a system as heat (q) or work (w). Find the signs, then find ΔU.</p></div>
+    <span class="badge">Chapter 6.3 · First law</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="signs">1 · Sign sorter</button>
+    <button type="button" data-tab="calc">2 · ΔU = q + w</button>
+    <button type="button" data-tab="path">3 · Same start, same end</button>
+    <button type="button" data-tab="check">4 · Quick check</button>
+  </nav>
+
+  <section class="tab card" id="signs">
+    <div class="how"><ol>
+      <li>Read the situation. The <b>system</b> is the gas or the chemicals.</li>
+      <li>Choose the sign of <b>q</b> (heat) and <b>w</b> (work): +, − or 0.</li>
+      <li>Press <b>Check</b>. Then press <b>Next</b>.</li>
+    </ol></div>
+    <div class="eq" id="sTxt" style="white-space:normal;font-family:var(--f-body);font-weight:500"></div>
+    <div class="grid2">
+      <div style="display:grid;gap:12px">
+        <div><b>Heat, q</b><div class="sel" id="selQ"></div></div>
+        <div><b>Work, w</b><div class="sel" id="selW"></div></div>
+        <div class="row"><button type="button" class="btn" id="sCheck">Check</button><button type="button" class="btn ghost" id="sNext">Next</button></div>
+        <p class="feedback info" id="sFb">Energy INTO the system = + · energy OUT of the system = −</p>
+        <p class="score">Correct: <span id="sScore">0</span> / 8</p>
+      </div>
+      <div class="sysbox"><svg viewBox="0 0 440 260" id="sSvg" role="img" aria-label="Energy flow into and out of the system"></svg></div>
+    </div>
+  </section>
+
+  <section class="tab card" id="calc" hidden>
+    <div class="how"><ol>
+      <li>Move the sliders for q and w. Watch the arrows and the energy bar.</li>
+      <li>ΔU = q + w. Like a bank account with two currencies: heat and work.</li>
+      <li>Complete the missions.</li>
+    </ol></div>
+    <div class="grid2">
+      <div style="display:grid;gap:14px">
+        <label class="field" for="q">Heat, q: <span class="num" id="qV"></span><input type="range" id="q" min="-500" max="500" step="2" value="-128"></label>
+        <label class="field" for="w">Work, w: <span class="num" id="wV"></span><input type="range" id="w" min="-500" max="500" step="1" value="462"></label>
+        <ul class="steps" id="cSteps"></ul>
+        <div class="bank"><div class="row" style="justify-content:space-between"><span>Energy of the system</span><span class="num" id="uTxt"></span></div><div class="bar"><div id="uBar"></div><span id="uLbl"></span></div></div>
+      </div>
+      <div class="sysbox"><svg viewBox="0 0 440 260" id="cSvg" role="img" aria-label="Heat and work arrows"></svg></div>
+    </div>
+    <h3>Missions</h3>
+    <div id="missions" style="display:grid;gap:8px"></div>
+  </section>
+
+  <section class="tab card" id="path" hidden>
+    <div class="how"><ol>
+      <li>We warm 100 g of water from 20 °C to 30 °C. It needs <b>4184 J</b>.</li>
+      <li>Move the slider: give the energy as heat (Bunsen burner), as work (stirring), or a mix.</li>
+      <li>Watch what changes and what stays the same.</li>
+    </ol></div>
+    <label class="field" for="mix">all heat (left) ← → all work (right)<input type="range" id="mix" min="0" max="100" step="5" value="0"></label>
+    <div class="pathbar"><div id="pq" style="background:var(--endo)"></div><div id="pw" style="background:var(--accent)"></div></div>
+    <div class="grid2">
+      <ul class="steps" id="pSteps"></ul>
+      <p class="feedback info" id="pFb"></p>
+    </div>
+  </section>
+
+  <section class="tab card" id="check" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
+    <div class="quiz" id="quiz"></div>
+    <button type="button" class="btn ghost" id="qReset">Try again</button>
+  </section>
+
+  <div class="card keybox">
+    <div><b>Symbol key:</b> <b>U</b> = internal energy (all the energy inside the system) · <b>ΔU</b> = change in internal energy · <b>q</b> = heat · <b>w</b> = work · <b>J</b> = joule · <b>sys</b> = system · <b>surr</b> = surroundings</div>
+    <div><b>Signs (Table 6.1):</b> heat absorbed by the system (endothermic) q + · heat released (exothermic) q − · work done ON the system (gas squeezed) w + · work done BY the system (gas expands) w −</div>
+    <div><b>Key equations:</b> <span class="num">ΔU = q + w</span> · <span class="num">ΔU(sys) = −ΔU(surr)</span></div>
+  </div>
+  <footer class="note">Values from Chemistry, Chapter 6.3 (pp. 236–239). Grade 11 Chemistry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// multiple-choice quiz builder
+function buildQuiz(el,qs,scoreEl){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+function arrows(q,w){
+ // q,w numbers or signs (+1/-1/0)
+ const qi=q>0,qo=q<0,wi=w>0,wo=w<0;
+ const A=(x1,y1,x2,y2,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="7" stroke-linecap="round"/>`+
+   (()=>{const ang=Math.atan2(y2-y1,x2-x1),s=16;const p1=[x2-s*Math.cos(ang-0.5),y2-s*Math.sin(ang-0.5)],p2=[x2-s*Math.cos(ang+0.5),y2-s*Math.sin(ang+0.5)];return `<polygon points="${x2+6*Math.cos(ang)},${y2+6*Math.sin(ang)} ${p1} ${p2}" fill="${c}"/>`;})();
+ let h=`<rect x="2" y="2" width="436" height="256" rx="14" fill="none" style="stroke:var(--line)" stroke-width="2"/>
+  <text x="220" y="26" text-anchor="middle" font-size="14">Surroundings</text>
+  <rect x="160" y="80" width="120" height="100" rx="14" style="fill:var(--soft);stroke:var(--accent)" stroke-width="2.5"/>
+  <text x="220" y="125" text-anchor="middle" font-size="16" font-weight="700">System</text><text x="220" y="146" text-anchor="middle" font-size="12">gas / chemicals</text>`;
+ const hc='var(--endo)',oc='var(--exo)',wc='var(--accent)';
+ if(qi)h+=A(30,130,140,130,hc)+`<text x="85" y="115" text-anchor="middle" font-size="13" style="fill:var(--endo)" font-weight="700">heat IN · q +</text>`;
+ if(qo)h+=A(150,130,40,130,oc)+`<text x="90" y="115" text-anchor="middle" font-size="13" style="fill:var(--exo)" font-weight="700">heat OUT · q −</text>`;
+ if(wi)h+=A(220,236,220,192,wc)+`<text x="300" y="228" text-anchor="middle" font-size="13" style="fill:var(--accent)" font-weight="700">work ON system · w +</text>`;
+ if(wo)h+=A(220,190,220,240,wc)+`<text x="300" y="228" text-anchor="middle" font-size="13" style="fill:var(--accent)" font-weight="700">work BY system · w −</text>`;
+ if(!qi&&!qo)h+=`<text x="85" y="135" text-anchor="middle" font-size="12" style="fill:var(--muted)">no heat (q = 0)</text>`;
+ if(!wi&&!wo)h+=`<text x="300" y="228" text-anchor="middle" font-size="12" style="fill:var(--muted)">no work (w = 0)</text>`;
+ return h;
+}
+// ---- tab 1
+const SC=[
+ {t:"A gas is squeezed (compressed) in a cylinder and gives off heat to the surroundings. (Example 6.2)",q:-1,w:1},
+ {t:"A gas expands and pushes the piston up. At the same time it absorbs heat from the surroundings.",q:1,w:-1},
+ {t:"Ice melts in a glass on the table. (Ignore any work.)",q:1,w:0},
+ {t:"Natural gas burns in a power station boiler and heats the water. The products push back the air.",q:-1,w:-1},
+ {t:"Karak tea is heated on a stove in a sealed pot that cannot expand.",q:1,w:0},
+ {t:"A car engine: the hot gas pushes the pistons down, and the engine gives heat to the air.",q:-1,w:-1},
+ {t:"Air is pumped into a tyre at a tyre shop in Al Ain. Assume no heat moves (the pump is very fast).",q:0,w:1},
+ {t:"Water freezes into ice in a freezer. (Ignore any work.)",q:-1,w:0},
+ {t:"A balloon in the sun absorbs heat and gets bigger.",q:1,w:-1},
+ {t:"Hydrogen gas is made in a reaction and pushes back the air. The beaker gets warm.",q:-1,w:-1},
+];
+let si=0,sQ=null,sW=null,sScore=0,sDone=false;
+function mkSel(id,set){const el=document.getElementById(id);el.innerHTML='';[['+',1],['−',-1],['0',0]].forEach(([l,v])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed','false');b.onclick=()=>{set(v);[...el.children].forEach(c=>c.setAttribute('aria-pressed',c===b?'true':'false'));};el.appendChild(b);});}
+function showSc(){const s=SC[si];document.getElementById('sTxt').textContent=s.t;sQ=null;sW=null;sDone=false;mkSel('selQ',v=>sQ=v);mkSel('selW',v=>sW=v);
+ document.getElementById('sSvg').innerHTML=arrows(0,0);const f=document.getElementById('sFb');f.className='feedback info';f.textContent='Energy INTO the system = + · energy OUT of the system = −';}
+document.getElementById('sNext').onclick=()=>{si=(si+1)%SC.length;showSc();};
+document.getElementById('sCheck').onclick=()=>{
+ const s=SC[si],f=document.getElementById('sFb');
+ if(sQ===null||sW===null){f.className='feedback bad';f.textContent='Choose a sign for q and for w first.';return;}
+ const ok=sQ===s.q&&sW===s.w;if(ok&&!sDone){sScore=Math.min(8,sScore+1);document.getElementById('sScore').textContent=sScore;}sDone=true;
+ const nm=(v,k)=>v>0?`${k} is + (energy in)`:v<0?`${k} is − (energy out)`:`${k} = 0`;
+ f.className='feedback '+(ok?'ok':'bad');f.textContent=(ok?'Correct! ':'Not quite. ')+nm(s.q,'q')+', '+nm(s.w,'w')+'.';
+ document.getElementById('sSvg').innerHTML=arrows(s.q,s.w);
+};
+// ---- tab 2
+const MISS=[
+ {t:"Example 6.2: q = −128 J, w = +462 J. Find ΔU.",ok:(q,w)=>q===-128&&w===462},
+ {t:"Practice: a gas does 279 J of work (w = −279 J) and absorbs 216 J of heat.",ok:(q,w)=>q===216&&w===-279},
+ {t:"Make ΔU = 0, but q is NOT zero.",ok:(q,w)=>q+w===0&&q!==0},
+ {t:"Make ΔU negative even though heat goes IN.",ok:(q,w)=>q>0&&q+w<0},
+];
+const doneM=new Set();
+function calc(){
+ const q=+document.getElementById('q').value,w=+document.getElementById('w').value,u=q+w;
+ const f=(v)=>(v>0?'+':v<0?'−':'')+Math.abs(v)+' J';
+ document.getElementById('qV').textContent=f(q)+(q>0?' (heat in)':q<0?' (heat out)':'');
+ document.getElementById('wV').textContent=f(w)+(w>0?' (work on the system)':w<0?' (work by the system)':'');
+ document.getElementById('cSteps').innerHTML=`<li><b class="n">①</b><span>ΔU = q + w</span></li><li><b class="n">②</b><span class="num">ΔU = (${f(q)}) + (${f(w)})</span></li>
+  <li><b class="n">③</b><span><b class="num">ΔU = ${f(u)}</b> · ${u>0?'the energy of the system goes UP':u<0?'the energy of the system goes DOWN':'no change in energy'}</span></li>
+  <li><b class="n">④</b><span>Surroundings: ΔU(surr) = <span class="num">${f(-u)}</span> (equal size, opposite sign)</span></li>`;
+ const start=1000,end=start+u;document.getElementById('uBar').style.width=Math.max(0,Math.min(100,end/2000*100))+'%';
+ document.getElementById('uLbl').textContent=`1000 J → ${end} J`;document.getElementById('uTxt').textContent='ΔU = '+f(u);
+ document.getElementById('cSvg').innerHTML=arrows(q,w);
+ MISS.forEach((m,i)=>{if(m.ok(q,w))doneM.add(i);});
+ document.getElementById('missions').innerHTML=MISS.map((m,i)=>`<div class="task ${doneM.has(i)?'done':''}"><span class="tick">${doneM.has(i)?'✓':''}</span><span>${m.t}</span></div>`).join('')+`<p class="score">${doneM.size} / ${MISS.length} missions complete</p>`;
+}
+['q','w'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+// ---- tab 3
+function path(){
+ const p=1-(+document.getElementById('mix').value/100),q=Math.round(4184*p),w=4184-q;
+ document.getElementById('pq').style.width=(p*100)+'%';document.getElementById('pq').textContent=q?'heat '+q+' J':'';
+ document.getElementById('pw').style.width=((1-p)*100)+'%';document.getElementById('pw').textContent=w?'work '+w+' J':'';
+ document.getElementById('pSteps').innerHTML=`<li><b class="n">q</b><span class="num">${q} J</span></li><li><b class="n">w</b><span class="num">${w} J</span></li><li><b class="n">ΔU</b><span class="num"><b>${q} + ${w} = 4184 J</b></span></li><li><b class="n">T</b><span>20 °C → 30 °C</span></li>`;
+ document.getElementById('pFb').innerHTML='q and w <b>change</b> with the path, so they are <b>not</b> state functions. ΔU is <b>always 4184 J</b>: it depends only on the start and end. ΔU (energy) <b>is a state function</b>.';
+}
+document.getElementById('mix').addEventListener('input',path);
+
+const QS=[
+ {dok:1,q:"Heat is absorbed by the system from the surroundings. The sign of q is…",o:["+","−","0"],a:0,why:"Energy into the system is positive (endothermic)."},
+ {dok:1,q:"A gas expands and pushes a piston. The sign of w is…",o:["+","−","0"],a:1,why:"The system does work on the surroundings, so w is negative."},
+ {dok:2,q:"Example 6.2: w = +462 J and q = −128 J. What is ΔU?",o:["+590 J","+334 J","−334 J","−590 J"],a:1,why:"ΔU = q + w = −128 + 462 = +334 J."},
+ {dok:2,q:"A gas does 279 J of work and absorbs 216 J of heat. What is ΔU?",o:["+495 J","+63 J","−63 J","−495 J"],a:2,why:"w = −279 J, q = +216 J, so ΔU = −63 J."},
+ {dok:2,q:"A system loses 250 J of energy. What is ΔU of the surroundings?",o:["−250 J","0 J","+250 J"],a:2,why:"ΔU(sys) = −ΔU(surr): energy lost by one is gained by the other."},
+ {dok:3,q:"Which of these is a state function?",o:["heat, q","work, w","internal energy, U"],a:2,why:"U depends only on the start and end. q and w depend on the path."},
+];
+function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
+document.getElementById('qReset').addEventListener('click',quiz);
+setupTabs();showSc();calc();path();quiz();
+</script>
+
+</html>
