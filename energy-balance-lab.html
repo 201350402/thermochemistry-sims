@@ -82,6 +82,36 @@ svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);fon
 .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
 .score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
 footer.note{font-size:.85rem;color:var(--muted)}
+/* Results card: always light so every screenshot on Toddle looks the same */
+nav.tabs button[data-tab="results"]{border-color:#B7791F;color:#8A5A0B}
+nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;border-color:#B7791F;color:#fff}
+.who{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.who input{max-width:260px}
+.rc{--rc-ink:#142235;--rc-muted:#56677C;--rc-line:#D5DEE8;--rc-soft:#F1F5F9;--rc-acc:#1F6F8B;--rc-star:#C98A0B;
+  background:#FFFFFF;color:var(--rc-ink);border:2px solid var(--rc-acc);border-radius:16px;padding:18px;display:grid;gap:14px;max-width:560px;width:100%;margin:0 auto;box-shadow:0 2px 10px rgba(20,34,53,.08)}
+.rc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rc-lab{font-size:1.25rem;font-weight:700;line-height:1.2}
+.rc-sub{color:var(--rc-muted);font-size:.85rem}
+.rc-total{text-align:right;display:grid;justify-items:end}
+.rc-total b{font:700 1.5rem var(--f-num);color:var(--rc-ink)}
+.rc-total span{font-size:.8rem;color:var(--rc-muted)}
+.rc-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--rc-soft);border-radius:10px;padding:10px 12px}
+.rc-who div{display:grid;gap:2px;min-width:0}
+.rc-who span{font-size:.75rem;color:var(--rc-muted);text-transform:uppercase;letter-spacing:.05em}
+.rc-who b{font-size:.95rem;overflow-wrap:anywhere}
+.rc-who b.missing{color:#B42318;font-weight:600}
+.rc table{width:100%;border-collapse:collapse;font-size:.92rem}
+.rc th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--rc-muted);text-align:left;font-weight:600;padding:0 6px 6px}
+.rc td{padding:8px 6px;border-top:1px solid var(--rc-line);vertical-align:middle}
+.rc td.n,.rc th.n{text-align:center;font-family:var(--f-num)}
+.rc .st,.rc .star{font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",system-ui,sans-serif;font-weight:400}
+.rc .st{font-size:1.45rem;letter-spacing:2px;white-space:nowrap;line-height:1}
+.rc .star{font-size:1.6rem;color:var(--rc-star);margin-right:4px;vertical-align:-2px}
+.rc .st .on{color:var(--rc-star)} .rc .st .off{color:var(--rc-line)}
+.rc td small{display:block;color:var(--rc-muted);font-size:.78rem}
+.rc-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.75rem;color:var(--rc-muted);border-top:1px solid var(--rc-line);padding-top:10px}
+.rc-msg{font-weight:600;color:var(--rc-acc);text-align:center;margin:0}
+@media (max-width:420px){.rc{padding:14px}.rc-who{grid-template-columns:1fr 1fr}.rc-who div:last-child{grid-column:1 / -1}.rc table{font-size:.85rem}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -97,8 +127,6 @@ footer.note{font-size:.85rem;color:var(--muted)}
 .task{display:flex;gap:8px;align-items:center}
 .task .tick{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;color:var(--ok)}
 .task.done .tick{border-color:var(--ok);background:var(--ok-soft)}
-.pathbar{display:flex;height:34px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
-.pathbar div{flex:none;display:grid;place-items:center;font:700 .8rem var(--f-num);color:#fff;transition:width .4s ease;white-space:nowrap;overflow:hidden}
 </style>
 <div class="wrap">
   <header class="top">
@@ -108,15 +136,14 @@ footer.note{font-size:.85rem;color:var(--muted)}
   <nav class="tabs" aria-label="Activities">
     <button type="button" data-tab="signs">1 · Sign sorter</button>
     <button type="button" data-tab="calc">2 · ΔU = q + w</button>
-    <button type="button" data-tab="path">3 · Same start, same end</button>
-    <button type="button" data-tab="check">4 · Quick check</button>
+    <button type="button" data-tab="check">3 · Quick check</button>
   </nav>
 
   <section class="tab card" id="signs">
     <div class="how"><ol>
       <li>Read the situation. The <b>system</b> is the gas or the chemicals.</li>
       <li>Choose the sign of <b>q</b> (heat) and <b>w</b> (work): +, − or 0.</li>
-      <li>Press <b>Check</b>. Then press <b>Next</b>.</li>
+      <li>Press <b>Check</b>. Then press <b>Next</b>. Get 8 correct.</li>
     </ol></div>
     <div class="eq" id="sTxt" style="white-space:normal;font-family:var(--f-body);font-weight:500"></div>
     <div class="grid2">
@@ -139,8 +166,8 @@ footer.note{font-size:.85rem;color:var(--muted)}
     </ol></div>
     <div class="grid2">
       <div style="display:grid;gap:14px">
-        <label class="field" for="q">Heat, q: <span class="num" id="qV"></span><input type="range" id="q" min="-500" max="500" step="2" value="-128"></label>
-        <label class="field" for="w">Work, w: <span class="num" id="wV"></span><input type="range" id="w" min="-500" max="500" step="1" value="462"></label>
+        <label class="field" for="q">Heat, q: <span class="num" id="qV"></span><input type="range" id="q" min="-500" max="500" step="2" value="0"></label>
+        <label class="field" for="w">Work, w: <span class="num" id="wV"></span><input type="range" id="w" min="-500" max="500" step="1" value="0"></label>
         <ul class="steps" id="cSteps"></ul>
         <div class="bank"><div class="row" style="justify-content:space-between"><span>Energy of the system</span><span class="num" id="uTxt"></span></div><div class="bar"><div id="uBar"></div><span id="uLbl"></span></div></div>
       </div>
@@ -148,20 +175,6 @@ footer.note{font-size:.85rem;color:var(--muted)}
     </div>
     <h3>Missions</h3>
     <div id="missions" style="display:grid;gap:8px"></div>
-  </section>
-
-  <section class="tab card" id="path" hidden>
-    <div class="how"><ol>
-      <li>We warm 100 g of water from 20 °C to 30 °C. It needs <b>4184 J</b>.</li>
-      <li>Move the slider: give the energy as heat (Bunsen burner), as work (stirring), or a mix.</li>
-      <li>Watch what changes and what stays the same.</li>
-    </ol></div>
-    <label class="field" for="mix">all heat (left) ← → all work (right)<input type="range" id="mix" min="0" max="100" step="5" value="0"></label>
-    <div class="pathbar"><div id="pq" style="background:var(--endo)"></div><div id="pw" style="background:var(--accent)"></div></div>
-    <div class="grid2">
-      <ul class="steps" id="pSteps"></ul>
-      <p class="feedback info" id="pFb"></p>
-    </div>
   </section>
 
   <section class="tab card" id="check" hidden>
@@ -209,8 +222,58 @@ function diagram(Hr,Hp,rLabel,pLabel,dHtext){
    <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
    ${arrow}</svg>`;
 }
-// multiple-choice quiz builder
-function buildQuiz(el,qs,scoreEl){
+// ---------- results tracking ----------
+// track(id,label,total,unit): register an activity. tryOnce(id): one attempt. setScore(id,n): best result so far.
+const RES={order:[],a:{}};
+function track(id,label,total,unit){if(!RES.a[id])RES.order.push(id);RES.a[id]={label,total,unit,score:0,tries:0};}
+function tryOnce(id){const a=RES.a[id];if(!a)return;a.tries++;renderResults();}
+function setScore(id,n){const a=RES.a[id];if(!a)return;a.score=Math.max(a.score,Math.min(n,a.total));renderResults();}
+function starsOf(a){const f=a.total?a.score/a.total:0;return f>=0.8?3:f>=0.5?2:f>0?1:0;}
+const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v);}catch(e){return '';}}
+function setupResults(){
+  const nav=document.querySelector('nav.tabs'),tabs=[...document.querySelectorAll('section.tab')],last=tabs[tabs.length-1];
+  const b=document.createElement('button');b.type='button';b.dataset.tab='results';b.textContent='★ My results';nav.appendChild(b);
+  const s=document.createElement('section');s.className='tab card';s.id='results';s.hidden=true;
+  s.innerHTML=`<div class="how"><ol>
+      <li>Do all the activities first. Your stars and tries are counted for you.</li>
+      <li>Type your <b>name</b> and <b>class</b>.</li>
+      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    <div id="rCard"></div>`;
+  last.after(s);
+  const n=document.getElementById('rName'),c=document.getElementById('rClass');
+  n.value=store('labName');c.value=store('labClass');
+  n.addEventListener('input',()=>{store('labName',n.value);renderResults();});
+  c.addEventListener('input',()=>{store('labClass',c.value);renderResults();});
+  b.addEventListener('click',renderResults);
+  renderResults();
+}
+function renderResults(){
+  const box=document.getElementById('rCard');if(!box)return;
+  const lab=document.querySelector('header.top h1').textContent,sub=document.querySelector('header.top .badge').textContent;
+  const name=(document.getElementById('rName').value||'').trim(),cls=(document.getElementById('rClass').value||'').trim();
+  const d=new Date(),date=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  let tot=0,max=0,tries=0;
+  const rows=RES.order.map(id=>{const a=RES.a[id],s=starsOf(a);tot+=s;max+=3;tries+=a.tries;
+    return `<tr><td>${esc(a.label)}<small>${a.tries?`${a.score} / ${a.total} ${esc(a.unit)}`:'not started'}</small></td>
+      <td class="n"><span class="st" aria-label="${s} of 3 stars"><span class="on">${'★'.repeat(s)}</span><span class="off">${'★'.repeat(3-s)}</span></span></td>
+      <td class="n">${a.tries}</td></tr>`;}).join('');
+  const msg=tot===max?'All stars! Excellent work.':tot>=max*2/3?'Great work! Go back to any activity to earn more stars.':'Keep going: go back to the activities to earn more stars.';
+  box.innerHTML=`<div class="rc" id="resultCard">
+    <div class="rc-head"><div><div class="rc-lab">${esc(lab)}</div><div class="rc-sub">${esc(sub)} · Results card</div></div>
+      <div class="rc-total"><b><span class="star">★</span>${tot} / ${max}</b><span>${tries} ${tries===1?'try':'tries'} in total</span></div></div>
+    <div class="rc-who"><div><span>Name</span><b class="${name?'':'missing'}">${name?esc(name):'type your name'}</b></div>
+      <div><span>Class</span><b class="${cls?'':'missing'}">${cls?esc(cls):'type your class'}</b></div>
+      <div><span>Date</span><b>${date}, ${time}</b></div></div>
+    <table><thead><tr><th>Activity</th><th class="n">Stars</th><th class="n">Tries</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="rc-msg">${msg}</p>
+    <div class="rc-foot"><span>Grade 11 Chemistry · Madar International School</span><span>★★★ = 80% or more</span></div>
+  </div>`;
+}
+// multiple-choice quiz builder (tid = activity id for the results card)
+function buildQuiz(el,qs,scoreEl,tid='check'){
   let score=0,done=0;
   const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
   el.innerHTML='';
@@ -219,10 +282,10 @@ function buildQuiz(el,qs,scoreEl){
     box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
     const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
     q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
-      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;if(done===0)tryOnce(tid);done++;
         if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
         else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
-        fb.hidden=false;upd();});
+        fb.hidden=false;upd();setScore(tid,score);});
       opts.appendChild(b);});
     el.appendChild(box);});
   upd();
@@ -269,7 +332,7 @@ document.getElementById('sNext').onclick=()=>{si=(si+1)%SC.length;showSc();};
 document.getElementById('sCheck').onclick=()=>{
  const s=SC[si],f=document.getElementById('sFb');
  if(sQ===null||sW===null){f.className='feedback bad';f.textContent='Choose a sign for q and for w first.';return;}
- const ok=sQ===s.q&&sW===s.w;if(ok&&!sDone){sScore=Math.min(8,sScore+1);document.getElementById('sScore').textContent=sScore;}sDone=true;
+ const ok=sQ===s.q&&sW===s.w;if(ok&&!sDone){sScore=Math.min(8,sScore+1);document.getElementById('sScore').textContent=sScore;}sDone=true;tryOnce('signs');setScore('signs',sScore);
  const nm=(v,k)=>v>0?`${k} is + (energy in)`:v<0?`${k} is − (energy out)`:`${k} = 0`;
  f.className='feedback '+(ok?'ok':'bad');f.textContent=(ok?'Correct! ':'Not quite. ')+nm(s.q,'q')+', '+nm(s.w,'w')+'.';
  document.getElementById('sSvg').innerHTML=arrows(s.q,s.w);
@@ -293,20 +356,10 @@ function calc(){
  const start=1000,end=start+u;document.getElementById('uBar').style.width=Math.max(0,Math.min(100,end/2000*100))+'%';
  document.getElementById('uLbl').textContent=`1000 J → ${end} J`;document.getElementById('uTxt').textContent='ΔU = '+f(u);
  document.getElementById('cSvg').innerHTML=arrows(q,w);
- MISS.forEach((m,i)=>{if(m.ok(q,w))doneM.add(i);});
+ MISS.forEach((m,i)=>{if(m.ok(q,w))doneM.add(i);});setScore('calc',doneM.size);
  document.getElementById('missions').innerHTML=MISS.map((m,i)=>`<div class="task ${doneM.has(i)?'done':''}"><span class="tick">${doneM.has(i)?'✓':''}</span><span>${m.t}</span></div>`).join('')+`<p class="score">${doneM.size} / ${MISS.length} missions complete</p>`;
 }
-['q','w'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
-// ---- tab 3
-function path(){
- const p=1-(+document.getElementById('mix').value/100),q=Math.round(4184*p),w=4184-q;
- document.getElementById('pq').style.width=(p*100)+'%';document.getElementById('pq').textContent=q?'heat '+q+' J':'';
- document.getElementById('pw').style.width=((1-p)*100)+'%';document.getElementById('pw').textContent=w?'work '+w+' J':'';
- document.getElementById('pSteps').innerHTML=`<li><b class="n">q</b><span class="num">${q} J</span></li><li><b class="n">w</b><span class="num">${w} J</span></li><li><b class="n">ΔU</b><span class="num"><b>${q} + ${w} = 4184 J</b></span></li><li><b class="n">T</b><span>20 °C → 30 °C</span></li>`;
- document.getElementById('pFb').innerHTML='q and w <b>change</b> with the path, so they are <b>not</b> state functions. ΔU is <b>always 4184 J</b>: it depends only on the start and end. ΔU (energy) <b>is a state function</b>.';
-}
-document.getElementById('mix').addEventListener('input',path);
-
+['q','w'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',calc);el.addEventListener('change',()=>tryOnce('calc'));});
 const QS=[
  {dok:1,q:"Heat is absorbed by the system from the surroundings. The sign of q is…",o:["+","−","0"],a:0,why:"Energy into the system is positive (endothermic)."},
  {dok:1,q:"A gas expands and pushes a piston. The sign of w is…",o:["+","−","0"],a:1,why:"The system does work on the surroundings, so w is negative."},
@@ -317,7 +370,8 @@ const QS=[
 ];
 function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
 document.getElementById('qReset').addEventListener('click',quiz);
-setupTabs();showSc();calc();path();quiz();
+track('signs','Sign sorter',8,'correct');track('calc','ΔU = q + w missions',4,'missions');track('check','Quick check',6,'best score');
+setupResults();setupTabs();showSc();calc();quiz();
 </script>
 
 </html>

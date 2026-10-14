@@ -82,6 +82,36 @@ svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);fon
 .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
 .score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
 footer.note{font-size:.85rem;color:var(--muted)}
+/* Results card: always light so every screenshot on Toddle looks the same */
+nav.tabs button[data-tab="results"]{border-color:#B7791F;color:#8A5A0B}
+nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;border-color:#B7791F;color:#fff}
+.who{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.who input{max-width:260px}
+.rc{--rc-ink:#142235;--rc-muted:#56677C;--rc-line:#D5DEE8;--rc-soft:#F1F5F9;--rc-acc:#1F6F8B;--rc-star:#C98A0B;
+  background:#FFFFFF;color:var(--rc-ink);border:2px solid var(--rc-acc);border-radius:16px;padding:18px;display:grid;gap:14px;max-width:560px;width:100%;margin:0 auto;box-shadow:0 2px 10px rgba(20,34,53,.08)}
+.rc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rc-lab{font-size:1.25rem;font-weight:700;line-height:1.2}
+.rc-sub{color:var(--rc-muted);font-size:.85rem}
+.rc-total{text-align:right;display:grid;justify-items:end}
+.rc-total b{font:700 1.5rem var(--f-num);color:var(--rc-ink)}
+.rc-total span{font-size:.8rem;color:var(--rc-muted)}
+.rc-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--rc-soft);border-radius:10px;padding:10px 12px}
+.rc-who div{display:grid;gap:2px;min-width:0}
+.rc-who span{font-size:.75rem;color:var(--rc-muted);text-transform:uppercase;letter-spacing:.05em}
+.rc-who b{font-size:.95rem;overflow-wrap:anywhere}
+.rc-who b.missing{color:#B42318;font-weight:600}
+.rc table{width:100%;border-collapse:collapse;font-size:.92rem}
+.rc th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--rc-muted);text-align:left;font-weight:600;padding:0 6px 6px}
+.rc td{padding:8px 6px;border-top:1px solid var(--rc-line);vertical-align:middle}
+.rc td.n,.rc th.n{text-align:center;font-family:var(--f-num)}
+.rc .st,.rc .star{font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",system-ui,sans-serif;font-weight:400}
+.rc .st{font-size:1.45rem;letter-spacing:2px;white-space:nowrap;line-height:1}
+.rc .star{font-size:1.6rem;color:var(--rc-star);margin-right:4px;vertical-align:-2px}
+.rc .st .on{color:var(--rc-star)} .rc .st .off{color:var(--rc-line)}
+.rc td small{display:block;color:var(--rc-muted);font-size:.78rem}
+.rc-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.75rem;color:var(--rc-muted);border-top:1px solid var(--rc-line);padding-top:10px}
+.rc-msg{font-weight:600;color:var(--rc-acc);text-align:center;margin:0}
+@media (max-width:420px){.rc{padding:14px}.rc-who{grid-template-columns:1fr 1fr}.rc-who div:last-child{grid-column:1 / -1}.rc table{font-size:.85rem}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -109,7 +139,7 @@ canvas{width:100%;max-width:420px;height:auto;display:block;border-radius:12px;b
     <div class="how"><ol>
       <li>Choose a reaction. Count the moles of <b>gas</b> on each side.</li>
       <li>Type your Δn, then press <b>Run the reaction</b> and watch the piston.</li>
-      <li>Press <b>Next step</b> to find ΔU, one step at a time.</li>
+      <li>Press <b>Next step</b> to find ΔU, one step at a time. Do all 5 reactions.</li>
     </ol></div>
     <div class="chips" id="rxList"></div>
     <div class="eq" id="pxEq"></div>
@@ -191,8 +221,58 @@ function diagram(Hr,Hp,rLabel,pLabel,dHtext){
    <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
    ${arrow}</svg>`;
 }
-// multiple-choice quiz builder
-function buildQuiz(el,qs,scoreEl){
+// ---------- results tracking ----------
+// track(id,label,total,unit): register an activity. tryOnce(id): one attempt. setScore(id,n): best result so far.
+const RES={order:[],a:{}};
+function track(id,label,total,unit){if(!RES.a[id])RES.order.push(id);RES.a[id]={label,total,unit,score:0,tries:0};}
+function tryOnce(id){const a=RES.a[id];if(!a)return;a.tries++;renderResults();}
+function setScore(id,n){const a=RES.a[id];if(!a)return;a.score=Math.max(a.score,Math.min(n,a.total));renderResults();}
+function starsOf(a){const f=a.total?a.score/a.total:0;return f>=0.8?3:f>=0.5?2:f>0?1:0;}
+const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v);}catch(e){return '';}}
+function setupResults(){
+  const nav=document.querySelector('nav.tabs'),tabs=[...document.querySelectorAll('section.tab')],last=tabs[tabs.length-1];
+  const b=document.createElement('button');b.type='button';b.dataset.tab='results';b.textContent='★ My results';nav.appendChild(b);
+  const s=document.createElement('section');s.className='tab card';s.id='results';s.hidden=true;
+  s.innerHTML=`<div class="how"><ol>
+      <li>Do all the activities first. Your stars and tries are counted for you.</li>
+      <li>Type your <b>name</b> and <b>class</b>.</li>
+      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    <div id="rCard"></div>`;
+  last.after(s);
+  const n=document.getElementById('rName'),c=document.getElementById('rClass');
+  n.value=store('labName');c.value=store('labClass');
+  n.addEventListener('input',()=>{store('labName',n.value);renderResults();});
+  c.addEventListener('input',()=>{store('labClass',c.value);renderResults();});
+  b.addEventListener('click',renderResults);
+  renderResults();
+}
+function renderResults(){
+  const box=document.getElementById('rCard');if(!box)return;
+  const lab=document.querySelector('header.top h1').textContent,sub=document.querySelector('header.top .badge').textContent;
+  const name=(document.getElementById('rName').value||'').trim(),cls=(document.getElementById('rClass').value||'').trim();
+  const d=new Date(),date=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  let tot=0,max=0,tries=0;
+  const rows=RES.order.map(id=>{const a=RES.a[id],s=starsOf(a);tot+=s;max+=3;tries+=a.tries;
+    return `<tr><td>${esc(a.label)}<small>${a.tries?`${a.score} / ${a.total} ${esc(a.unit)}`:'not started'}</small></td>
+      <td class="n"><span class="st" aria-label="${s} of 3 stars"><span class="on">${'★'.repeat(s)}</span><span class="off">${'★'.repeat(3-s)}</span></span></td>
+      <td class="n">${a.tries}</td></tr>`;}).join('');
+  const msg=tot===max?'All stars! Excellent work.':tot>=max*2/3?'Great work! Go back to any activity to earn more stars.':'Keep going: go back to the activities to earn more stars.';
+  box.innerHTML=`<div class="rc" id="resultCard">
+    <div class="rc-head"><div><div class="rc-lab">${esc(lab)}</div><div class="rc-sub">${esc(sub)} · Results card</div></div>
+      <div class="rc-total"><b><span class="star">★</span>${tot} / ${max}</b><span>${tries} ${tries===1?'try':'tries'} in total</span></div></div>
+    <div class="rc-who"><div><span>Name</span><b class="${name?'':'missing'}">${name?esc(name):'type your name'}</b></div>
+      <div><span>Class</span><b class="${cls?'':'missing'}">${cls?esc(cls):'type your class'}</b></div>
+      <div><span>Date</span><b>${date}, ${time}</b></div></div>
+    <table><thead><tr><th>Activity</th><th class="n">Stars</th><th class="n">Tries</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="rc-msg">${msg}</p>
+    <div class="rc-foot"><span>Grade 11 Chemistry · Madar International School</span><span>★★★ = 80% or more</span></div>
+  </div>`;
+}
+// multiple-choice quiz builder (tid = activity id for the results card)
+function buildQuiz(el,qs,scoreEl,tid='check'){
   let score=0,done=0;
   const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
   el.innerHTML='';
@@ -201,10 +281,10 @@ function buildQuiz(el,qs,scoreEl){
     box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
     const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
     q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
-      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;done++;
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;if(done===0)tryOnce(tid);done++;
         if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
         else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
-        fb.hidden=false;upd();});
+        fb.hidden=false;upd();setScore(tid,score);});
       opts.appendChild(b);});
     el.appendChild(box);});
   upd();
@@ -221,6 +301,7 @@ const RXS=[
  {n:"Making carbon monoxide",e:"C(graphite) + ½O2(g) → CO(g)",dH:-110.5,gr:0.5,gp:1},
  {n:"Methane + iodine",e:"CH4(g) + I2(g) → CH3I(g) + HI(g)",dH:23.0,gr:2,gp:2},
 ];
+const pRight=new Set();
 let ri=1,phase=0,step=0,anim=null,pistonY=0,targetY=0,parts=[];
 const cv=document.getElementById('cyl'),cx=cv.getContext('2d');
 function pistonFor(g){return 250-60-g*45;} // more gas -> piston higher (smaller y)
@@ -262,6 +343,7 @@ RXS.forEach((r,i)=>{const b=document.createElement('button');b.type='button';b.c
 document.getElementById('run').onclick=()=>{
  const r=RXS[ri],dn=r.gp-r.gr,gv=document.getElementById('dnGuess').value,fb=document.getElementById('dnFb');
  if(gv===''){fb.className='feedback bad';fb.textContent='Type your Δn first. Count only the gases (g).';return;}
+ tryOnce('piston');if(Math.abs(+gv-dn)<1e-9){pRight.add(ri);setScore('piston',pRight.size);}
  fb.className='feedback '+(Math.abs(+gv-dn)<1e-9?'ok':'bad');
  fb.textContent=(Math.abs(+gv-dn)<1e-9?'Correct! ':'Not quite. ')+`Gas: products ${r.gp} mol − reactants ${r.gr} mol, so Δn = ${dn>0?'+':''}${dn}.`;
  targetY=pistonFor(r.gp);makeParts(r.gp);phase=1;step=0;
@@ -300,6 +382,7 @@ document.getElementById('prCheck').onclick=()=>{
  const want=dn>0?'up':dn<0?'down':'still',wc=dn===0?'same':'diff';
  const ok=Math.abs(+v-dn)<1e-9&&ps===want&&cm===wc;
  if(ok&&!prDone){prScore=Math.min(8,prScore+1);document.getElementById('prScore').textContent=prScore;}
+ tryOnce('practice');setScore('practice',prScore);
  prDone=true;f.className='feedback '+(ok?'ok':'bad');
  f.textContent=(ok?'Correct! ':'Not quite. ')+`Gas: products ${r.p} − reactants ${r.r}, so Δn = ${dn>0?'+':''}${dn}. The piston ${want==='up'?'moves up (gas pushes the air back, work is done BY the system)':want==='down'?'moves down (the air pushes in, work is done ON the system)':'stays still (no work)'}. ${dn===0?'So ΔU = ΔH.':'So ΔU is a little different from ΔH.'}`;
 };
@@ -313,7 +396,8 @@ const QS=[
 ];
 function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
 document.getElementById('qReset').addEventListener('click',quiz);
-setupTabs();setRx(1);drawCyl();newPr();quiz();
+track('piston','Gas and piston',5,'reactions correct');track('practice','Δn practice',8,'correct');track('check','Quick check',6,'best score');
+setupResults();setupTabs();setRx(1);drawCyl();newPr();quiz();
 </script>
 
 </html>
