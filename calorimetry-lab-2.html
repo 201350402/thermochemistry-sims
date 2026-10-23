@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calorimetry Lab · Part 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+/* Results card: always light so every screenshot on Toddle looks the same */
+nav.tabs button[data-tab="results"]{border-color:#B7791F;color:#8A5A0B}
+nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;border-color:#B7791F;color:#fff}
+.who{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.who input{max-width:260px}
+.rc{--rc-ink:#142235;--rc-muted:#56677C;--rc-line:#D5DEE8;--rc-soft:#F1F5F9;--rc-acc:#1F6F8B;--rc-star:#C98A0B;
+  background:#FFFFFF;color:var(--rc-ink);border:2px solid var(--rc-acc);border-radius:16px;padding:18px;display:grid;gap:14px;max-width:560px;width:100%;margin:0 auto;box-shadow:0 2px 10px rgba(20,34,53,.08)}
+.rc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rc-lab{font-size:1.25rem;font-weight:700;line-height:1.2}
+.rc-sub{color:var(--rc-muted);font-size:.85rem}
+.rc-total{text-align:right;display:grid;justify-items:end}
+.rc-total b{font:700 1.5rem var(--f-num);color:var(--rc-ink)}
+.rc-total span{font-size:.8rem;color:var(--rc-muted)}
+.rc-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--rc-soft);border-radius:10px;padding:10px 12px}
+.rc-who div{display:grid;gap:2px;min-width:0}
+.rc-who span{font-size:.75rem;color:var(--rc-muted);text-transform:uppercase;letter-spacing:.05em}
+.rc-who b{font-size:.95rem;overflow-wrap:anywhere}
+.rc-who b.missing{color:#B42318;font-weight:600}
+.rc table{width:100%;border-collapse:collapse;font-size:.92rem}
+.rc th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--rc-muted);text-align:left;font-weight:600;padding:0 6px 6px}
+.rc td{padding:8px 6px;border-top:1px solid var(--rc-line);vertical-align:middle}
+.rc td.n,.rc th.n{text-align:center;font-family:var(--f-num)}
+.rc .st,.rc .star{font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",system-ui,sans-serif;font-weight:400}
+.rc .st{font-size:1.45rem;letter-spacing:2px;white-space:nowrap;line-height:1}
+.rc .star{font-size:1.6rem;color:var(--rc-star);margin-right:4px;vertical-align:-2px}
+.rc .st .on{color:var(--rc-star)} .rc .st .off{color:var(--rc-line)}
+.rc td small{display:block;color:var(--rc-muted);font-size:.78rem}
+.rc-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.75rem;color:var(--rc-muted);border-top:1px solid var(--rc-line);padding-top:10px}
+.rc-msg{font-weight:600;color:var(--rc-acc);text-align:center;margin:0}
+@media (max-width:420px){.rc{padding:14px}.rc-who{grid-template-columns:1fr 1fr}.rc-who div:last-child{grid-column:1 / -1}.rc table{font-size:.85rem}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+.bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:640px){.bench{grid-template-columns:1fr}}
+.bench svg{width:100%;max-width:460px;display:block;margin:0 auto}
+.fields{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.fields input,.fields select{max-width:170px}
+.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.readout div{background:var(--soft);border-radius:10px;padding:8px 10px;display:grid;gap:2px}
+.readout span{font-size:.78rem;color:var(--muted)}
+.readout b{font-family:var(--f-num);font-size:1.15rem}
+.chips .chip.done{border-color:var(--ok)}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Calorimetry Lab · Part 2</h1><p>A calorimeter traps the heat. Heat given out by the reaction = heat taken in by the calorimeter.</p></div>
+    <span class="badge">Chapter 6.5 · Lesson 2</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="bomb">1 · Bomb calorimeter</button>
+    <button type="button" data-tab="cup">2 · Coffee-cup calorimeter</button>
+    <button type="button" data-tab="check">3 · Quick check</button>
+  </nav>
+
+  <section class="tab card" id="bomb">
+    <div class="how"><ol>
+      <li>Choose a sample. Press <b>Ignite</b> (an electric spark starts the burning).</li>
+      <li>Read the start and end temperature. Find <b>Δt</b>, then <b>q(cal) = C(cal) × Δt</b>.</li>
+      <li>Then <b>q(rxn) = −q(cal)</b>. Get <b>2 samples</b> correct.</li>
+    </ol></div>
+    <div class="chips" id="smp"></div>
+    <div class="bench">
+      <svg viewBox="0 0 460 330" id="bombSvg" role="img" aria-label="Constant-volume bomb calorimeter"></svg>
+      <div style="display:grid;gap:12px">
+        <div class="readout"><div><span>C(cal), bomb + water</span><b>10.17 kJ/°C</b></div><div><span>t start</span><b id="bT0">–</b></div><div><span>t end</span><b id="bT1">–</b></div></div>
+        <button type="button" class="btn" id="ignite">Ignite</button>
+        <div class="fields">
+          <label class="field" for="bDt">① Δt (°C)<input type="number" id="bDt" step="any"></label>
+          <label class="field" for="bQc">② q(cal) (kJ)<input type="number" id="bQc" step="any"></label>
+          <label class="field" for="bQr">③ q(rxn) (kJ)<input type="number" id="bQr" step="any"></label>
+        </div>
+        <button type="button" class="btn ghost" id="bCheck" style="justify-self:start">Check</button>
+        <p class="feedback info" id="bFb">Constant volume: the steel bomb does not change size. No heat escapes (isolated system).</p>
+        <p class="score">Samples correct: <span id="bScore">0</span> / 2</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab card" id="cup" hidden>
+    <div class="how"><ol>
+      <li>Press <b>Mix</b>: an acid and a base react in two Styrofoam cups (Figure 6.9).</li>
+      <li>The solution is 100 g. Treat it like water: c = 4.184 J/g·°C.</li>
+      <li>Find Δt, q(solution) = mcΔt, then q(rxn) = −q(solution). Answer all 5 parts.</li>
+    </ol></div>
+    <div class="bench">
+      <svg viewBox="0 0 460 330" id="cupSvg" role="img" aria-label="Coffee-cup calorimeter"></svg>
+      <div style="display:grid;gap:12px">
+        <div class="readout"><div><span>mass of solution</span><b>100 g</b></div><div><span>t start</span><b id="cT0">25.0 °C</b></div><div><span>t end</span><b id="cT1">–</b></div></div>
+        <button type="button" class="btn" id="mix">Mix</button>
+        <div class="fields">
+          <label class="field" for="cDt">① Δt (°C)<input type="number" id="cDt" step="any"></label>
+          <label class="field" for="cQs">② q(solution) (J)<input type="number" id="cQs" step="any"></label>
+          <label class="field" for="cQr">③ q(rxn) (J)<input type="number" id="cQr" step="any"></label>
+          <label class="field" for="cEx">④ the reaction is…<select id="cEx"><option value="">choose…</option><option value="exo">exothermic</option><option value="endo">endothermic</option></select></label>
+          <label class="field" for="cEq">⑤ constant pressure: q(rxn) =<select id="cEq"><option value="">choose…</option><option value="dh">ΔH</option><option value="c">C(cal)</option><option value="dt">Δt</option></select></label>
+        </div>
+        <button type="button" class="btn ghost" id="cCheck" style="justify-self:start">Check</button>
+        <p class="feedback info" id="cFb">The two cups insulate the mixture. We ignore the small heat capacity of the cups.</p>
+        <p class="score">Parts correct: <span id="cScore">0</span> / 5</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab card" id="check" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
+    <div class="quiz" id="quiz"></div>
+    <button type="button" class="btn ghost" id="qReset">Try again</button>
+  </section>
+
+  <div class="card keybox">
+    <div><b>Symbol key:</b> <b>q(cal)</b> = heat taken in by the calorimeter · <b>q(rxn)</b> = heat of the reaction · <b>C(cal)</b> = heat capacity of the calorimeter (bomb + water), kJ/°C · <b>Δt</b> = t(final) − t(initial)</div>
+    <div><b>Key equations:</b> <span class="num">q(system) = q(cal) + q(rxn) = 0</span> · <span class="num">q(rxn) = −q(cal)</span> · <span class="num">q(cal) = C(cal)Δt</span> · coffee cup (constant pressure): <span class="num">q(rxn) = ΔH</span></div>
+  </div>
+  <footer class="note">Values from Chemistry, Chapter 6.5 (pp. 248–250), Example 6.6 and Table 6.3. Grade 11 Chemistry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// ---------- results tracking ----------
+// track(id,label,total,unit): register an activity. tryOnce(id): one attempt. setScore(id,n): best result so far.
+const RES={order:[],a:{}};
+function track(id,label,total,unit){if(!RES.a[id])RES.order.push(id);RES.a[id]={label,total,unit,score:0,tries:0};}
+function tryOnce(id){const a=RES.a[id];if(!a)return;a.tries++;renderResults();}
+function setScore(id,n){const a=RES.a[id];if(!a)return;a.score=Math.max(a.score,Math.min(n,a.total));renderResults();}
+function starsOf(a){const f=a.total?a.score/a.total:0;return f>=0.8?3:f>=0.5?2:f>0?1:0;}
+const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v);}catch(e){return '';}}
+function setupResults(){
+  const nav=document.querySelector('nav.tabs'),tabs=[...document.querySelectorAll('section.tab')],last=tabs[tabs.length-1];
+  const b=document.createElement('button');b.type='button';b.dataset.tab='results';b.textContent='★ My results';nav.appendChild(b);
+  const s=document.createElement('section');s.className='tab card';s.id='results';s.hidden=true;
+  s.innerHTML=`<div class="how"><ol>
+      <li>Do all the activities first. Your stars and tries are counted for you.</li>
+      <li>Type your <b>name</b> and <b>class</b>.</li>
+      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    <div id="rCard"></div>`;
+  last.after(s);
+  const n=document.getElementById('rName'),c=document.getElementById('rClass');
+  n.value=store('labName');c.value=store('labClass');
+  n.addEventListener('input',()=>{store('labName',n.value);renderResults();});
+  c.addEventListener('input',()=>{store('labClass',c.value);renderResults();});
+  b.addEventListener('click',renderResults);
+  renderResults();
+}
+function renderResults(){
+  const box=document.getElementById('rCard');if(!box)return;
+  const lab=document.querySelector('header.top h1').textContent,sub=document.querySelector('header.top .badge').textContent;
+  const name=(document.getElementById('rName').value||'').trim(),cls=(document.getElementById('rClass').value||'').trim();
+  const d=new Date(),date=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  let tot=0,max=0,tries=0;
+  const rows=RES.order.map(id=>{const a=RES.a[id],s=starsOf(a);tot+=s;max+=3;tries+=a.tries;
+    return `<tr><td>${esc(a.label)}<small>${a.tries?`${a.score} / ${a.total} ${esc(a.unit)}`:'not started'}</small></td>
+      <td class="n"><span class="st" aria-label="${s} of 3 stars"><span class="on">${'★'.repeat(s)}</span><span class="off">${'★'.repeat(3-s)}</span></span></td>
+      <td class="n">${a.tries}</td></tr>`;}).join('');
+  const msg=tot===max?'All stars! Excellent work.':tot>=max*2/3?'Great work! Go back to any activity to earn more stars.':'Keep going: go back to the activities to earn more stars.';
+  box.innerHTML=`<div class="rc" id="resultCard">
+    <div class="rc-head"><div><div class="rc-lab">${esc(lab)}</div><div class="rc-sub">${esc(sub)} · Results card</div></div>
+      <div class="rc-total"><b><span class="star">★</span>${tot} / ${max}</b><span>${tries} ${tries===1?'try':'tries'} in total</span></div></div>
+    <div class="rc-who"><div><span>Name</span><b class="${name?'':'missing'}">${name?esc(name):'type your name'}</b></div>
+      <div><span>Class</span><b class="${cls?'':'missing'}">${cls?esc(cls):'type your class'}</b></div>
+      <div><span>Date</span><b>${date}, ${time}</b></div></div>
+    <table><thead><tr><th>Activity</th><th class="n">Stars</th><th class="n">Tries</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="rc-msg">${msg}</p>
+    <div class="rc-foot"><span>Grade 11 Chemistry · Madar International School</span><span>★★★ = 80% or more</span></div>
+  </div>`;
+}
+// multiple-choice quiz builder (tid = activity id for the results card)
+function buildQuiz(el,qs,scoreEl,tid='check'){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;if(done===0)tryOnce(tid);done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();setScore(tid,score);});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+const CC=10.17,TI=20.28;
+const SM=[
+ {n:'Benzoic acid',f:'C6H5COOH',g:'1.000 g',q:26.42},
+ {n:'Naphthalene',f:'C10H8',g:'1.435 g',q:57.66},
+ {n:'Methanol',f:'CH3OH',g:'1.922 g',q:43.68},
+];
+SM.forEach(s=>{s.tf=+(TI+s.q/CC).toFixed(2);s.dt=+(s.tf-TI).toFixed(2);s.qc=CC*s.dt;});
+let si=null,fired=false,bDone=new Set(),anim=null;
+const near=(x,y,r=.012)=>Math.abs(x-y)<=Math.abs(y)*r+0.051;
+function th(x,y,h,t,lo,hi,col){const f=Math.max(0,Math.min(1,(t-lo)/(hi-lo)));return `<rect x="${x-9}" y="${y-h}" width="18" height="${h}" rx="9" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/><circle cx="${x}" cy="${y+12}" r="15" fill="${col}" stroke="var(--ink)" stroke-width="3"/><rect x="${x-4}" y="${y-h*f}" width="8" height="${h*f+6}" rx="4" fill="${col}"/>`;}
+function drawBomb(t,flash,stir){
+ const col=t>TI+.05?'var(--exo)':'var(--endo)';
+ const s=si===null?null:SM[si];
+ document.getElementById('bombSvg').innerHTML=`
+  <rect x="60" y="70" width="300" height="250" rx="10" fill="var(--soft)" stroke="var(--ink)" stroke-width="3"/>
+  <text x="70" y="314" font-size="12" fill="var(--muted)">insulated jacket</text>
+  <rect x="85" y="95" width="250" height="200" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+  <rect x="88" y="120" width="244" height="172" rx="6" fill="#BFDDF2" opacity=".85"/>
+  <text x="300" y="138" font-size="12" fill="var(--ink)">water</text>
+  <rect x="50" y="58" width="320" height="16" rx="4" fill="var(--ink)"/>
+  <rect x="155" y="170" width="110" height="105" rx="16" fill="#AEB8C4" stroke="var(--ink)" stroke-width="3"/>
+  <rect x="150" y="160" width="120" height="18" rx="6" fill="#8C99A8" stroke="var(--ink)" stroke-width="2"/>
+  <text x="210" y="225" text-anchor="middle" font-size="13" font-weight="700">bomb</text>
+  <text x="210" y="242" text-anchor="middle" font-size="11">O₂ + sample</text>
+  <path d="M190 262 h40 v8 h-40z" fill="${s?'#7A5A3A':'var(--line)'}" stroke="var(--ink)" stroke-width="2"/>
+  <path d="M195 160 C190 120 205 100 200 40 M225 160 C230 120 215 100 222 40" fill="none" stroke="var(--exo)" stroke-width="2"/>
+  <text x="212" y="32" text-anchor="middle" font-size="11" fill="var(--muted)">ignition wires</text>
+  ${flash>0?`<circle cx="210" cy="255" r="${18+flash*30}" fill="var(--exo)" opacity="${.65*flash}"/><circle cx="210" cy="258" r="10" fill="#FFD27A" opacity="${flash}"/>`:''}
+  <line x1="300" y1="40" x2="300" y2="270" stroke="var(--ink)" stroke-width="5"/><path d="M285 ${270+(stir?Math.sin(Date.now()/90)*4:0)} h30" stroke="var(--ink)" stroke-width="5"/>
+  <text x="300" y="32" text-anchor="middle" font-size="11" fill="var(--muted)">stirrer</text>
+  ${th(120,250,200,t,18,28,col)}
+  <text x="120" y="32" text-anchor="middle" font-size="11" fill="var(--muted)">thermometer</text>
+  <text x="400" y="150" font-size="22" font-weight="700" font-family="var(--f-num)" text-anchor="middle" fill="${col}">${t.toFixed(2)}</text>
+  <text x="400" y="172" font-size="12" text-anchor="middle" fill="var(--muted)">°C</text>
+  ${s?`<text x="210" y="300" text-anchor="middle" font-size="12" font-weight="600">${s.g} ${chem(s.f)}</text>`:''}`;}
+const sc=document.getElementById('smp');
+SM.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed','false');b.innerHTML=`${s.n} · ${s.g} ${chem(s.f)}`;
+ b.onclick=()=>{si=i;fired=false;[...sc.children].forEach((x,k)=>x.setAttribute('aria-pressed',k===i));document.getElementById('bT0').textContent=TI.toFixed(2)+' °C';document.getElementById('bT1').textContent='–';
+  ['bDt','bQc','bQr'].forEach(id=>document.getElementById(id).value='');const f=document.getElementById('bFb');f.className='feedback info';f.textContent='Press Ignite and watch the water temperature.';drawBomb(TI,0,false);};sc.appendChild(b);});
+document.getElementById('ignite').onclick=()=>{const f=document.getElementById('bFb');
+ if(si===null){f.className='feedback bad';f.textContent='Choose a sample first.';return;}
+ const s=SM[si];cancelAnimationFrame(anim);const t0=performance.now(),D=2600;
+ const step=now=>{const p=Math.min(1,(now-t0)/D);const fl=Math.max(0,1-p*4);drawBomb(TI+(s.tf-TI)*(1-Math.pow(1-p,2.2)),fl,p<1);if(p<1)anim=requestAnimationFrame(step);else{fired=true;document.getElementById('bT1').textContent=s.tf.toFixed(2)+' °C';f.className='feedback info';f.textContent='Done. The water got warmer: the burning sample released heat into the water and bomb.';}};
+ anim=requestAnimationFrame(step);};
+document.getElementById('bCheck').onclick=()=>{const f=document.getElementById('bFb');
+ if(si===null||!fired){f.className='feedback bad';f.textContent='Choose a sample and press Ignite first.';return;}
+ const s=SM[si],a=document.getElementById('bDt').value,b=document.getElementById('bQc').value,c=document.getElementById('bQr').value;
+ if(a===''||b===''||c===''){f.className='feedback bad';f.textContent='Fill in all three answers.';return;}
+ tryOnce('bomb');const o1=near(+a,s.dt,.002),o2=near(+b,s.qc),o3=near(+c,-s.qc);
+ if(o1&&o2&&o3){bDone.add(si);[...sc.children][si].classList.add('done');document.getElementById('bScore').textContent=Math.min(2,bDone.size);setScore('bomb',bDone.size);
+  f.className='feedback ok';f.textContent=`All correct: Δt = ${s.dt.toFixed(2)} °C, q(cal) = ${s.qc.toFixed(2)} kJ, q(rxn) = −${s.qc.toFixed(2)} kJ (exothermic). ${bDone.size<2?'Now try another sample.':''}`;}
+ else{f.className='feedback bad';f.textContent=[o1?'① correct.':'① Δt = t end − t start.',o2?'② correct.':'② q(cal) = 10.17 × Δt.',o3?'③ correct.':'③ q(rxn) = −q(cal): same number, opposite sign.'].join(' ');}};
+// ---------- coffee cup ----------
+const CT0=25.0,CT1=31.7,CDT=+(CT1-CT0).toFixed(1),CQS=100*4.184*CDT;
+let mixed=false,cBest=0;
+function drawCup(t,pour){const col=t>CT0+.05?'var(--exo)':'var(--endo)';const lvl=pour;
+ document.getElementById('cupSvg').innerHTML=`
+  <path d="M120 80 L150 300 L310 300 L340 80 Z" fill="var(--soft)" stroke="var(--ink)" stroke-width="3"/>
+  <path d="M138 100 L163 288 L297 288 L322 100 Z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+  <text x="352" y="200" font-size="12" fill="var(--muted)">Styrofoam cups</text>
+  <path d="M${163-6*lvl} ${288-150*lvl} L163 288 L297 288 L${297+6*lvl} ${288-150*lvl} Z" fill="#BFDDF2" opacity=".9"/>
+  <rect x="128" y="70" width="204" height="18" rx="5" fill="var(--muted)"/>
+  <line x1="275" y1="40" x2="275" y2="270" stroke="var(--ink)" stroke-width="4"/><ellipse cx="275" cy="272" rx="26" ry="6" fill="none" stroke="var(--ink)" stroke-width="3"/>
+  <text x="290" y="36" font-size="11" fill="var(--muted)">stirrer</text>
+  ${th(210,260,210,t,20,36,col)}
+  <text x="190" y="36" font-size="11" text-anchor="end" fill="var(--muted)">thermometer</text>
+  ${pour>0&&pour<1?`<text x="60" y="140" font-size="12" font-weight="600">acid</text><text x="390" y="140" font-size="12" font-weight="600">base</text><path d="M70 150 Q110 150 150 ${120+40*pour}" stroke="#BFDDF2" stroke-width="8" fill="none"/><path d="M400 150 Q360 150 310 ${120+40*pour}" stroke="#BFDDF2" stroke-width="8" fill="none"/>`:''}
+  <text x="410" y="260" font-size="22" font-weight="700" font-family="var(--f-num)" text-anchor="middle" fill="${col}">${t.toFixed(1)}</text>
+  <text x="410" y="282" font-size="12" text-anchor="middle" fill="var(--muted)">°C</text>`;}
+document.getElementById('mix').onclick=()=>{cancelAnimationFrame(anim);const t0=performance.now(),D=2600;
+ const step=now=>{const p=Math.min(1,(now-t0)/D);const pour=Math.min(1,p*2.2);const tp=Math.max(0,(p-.35)/.65);drawCup(CT0+(CT1-CT0)*(1-Math.pow(1-tp,2)),pour);if(p<1)anim=requestAnimationFrame(step);else{mixed=true;document.getElementById('cT1').textContent=CT1.toFixed(1)+' °C';}};
+ anim=requestAnimationFrame(step);};
+document.getElementById('cCheck').onclick=()=>{const f=document.getElementById('cFb');
+ if(!mixed){f.className='feedback bad';f.textContent='Press Mix first.';return;}
+ const v=id=>document.getElementById(id).value;
+ if(['cDt','cQs','cQr','cEx','cEq'].some(id=>v(id)==='')){f.className='feedback bad';f.textContent='Answer all 5 parts.';return;}
+ tryOnce('cup');
+ const ok=[near(+v('cDt'),CDT,.002),near(+v('cQs'),CQS),near(+v('cQr'),-CQS),v('cEx')==='exo',v('cEq')==='dh'];
+ const n=ok.filter(Boolean).length;cBest=Math.max(cBest,n);document.getElementById('cScore').textContent=cBest;setScore('cup',cBest);
+ const tips=['① Δt = 31.7 − 25.0.','② q = m × c × Δt = 100 × 4.184 × Δt (J).','③ q(rxn) = −q(solution).','④ The solution got warmer, so the reaction released heat.','⑤ At constant pressure, q(rxn) = ΔH.'];
+ f.className='feedback '+(n===5?'ok':'bad');
+ f.textContent=n===5?`All correct! q(solution) = +${Math.round(CQS)} J, q(rxn) = −${Math.round(CQS)} J = ΔH. Exothermic, like heat of neutralization in Table 6.3 (ΔH = −56.2 kJ/mol).`:ok.map((x,i)=>x?['①','②','③','④','⑤'][i]+' correct.':tips[i]).join(' ');};
+const QS=[
+ {q:'A bomb calorimeter keeps the ______ constant.',o:['pressure','volume','temperature'],a:1,why:'The steel bomb does not change size: constant volume.'},
+ {q:'q(cal) = +20.0 kJ. What is q(rxn)?',o:['+20.0 kJ','−20.0 kJ','0 kJ'],a:1,why:'q(rxn) = −q(cal). The reaction released the heat that the calorimeter absorbed.'},
+ {q:'C(cal) = 5.00 kJ/°C and Δt = 3.00 °C. What is q(cal)?',o:['1.67 kJ','8.00 kJ','15.0 kJ','0.600 kJ'],a:2,why:'q(cal) = C(cal) × Δt = 5.00 × 3.00 = 15.0 kJ.'},
+ {q:'In a coffee-cup calorimeter, the heat of reaction is equal to…',o:['ΔH, because the pressure is constant','ΔU, because the volume is constant','zero, because no heat escapes'],a:0,why:'A coffee-cup calorimeter is open to the air: constant pressure, so q(rxn) = ΔH.'},
+ {q:'Burning is exothermic, but q(cal) is POSITIVE. Why?',o:['The calorimeter (water + bomb) absorbs the heat','The reaction absorbs heat','The thermometer is wrong'],a:0,why:'q(cal) is the heat absorbed by the calorimeter, so it is positive.'},
+];
+function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
+document.getElementById('qReset').addEventListener('click',quiz);
+track('bomb','Bomb calorimeter',2,'samples correct');track('cup','Coffee-cup calorimeter',5,'parts correct');track('check','Quick check',5,'best score');
+setupResults();setupTabs();drawBomb(TI,0,false);drawCup(CT0,0);quiz();
+</script>
+
+</html>

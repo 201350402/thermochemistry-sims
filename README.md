@@ -9,5 +9,7 @@ Interactive simulations for Grade 11 Chemistry, Chapter 6 (Thermochemistry). Stu
 | Lesson 1 Enthalpy | Enthalpy Explorer | `enthalpy-explorer.html` |
 | Lesson 2 Thermochemical equations | Thermochemical Equation Lab | `equation-lab.html` |
 | Lesson 3 ΔH and ΔU | Piston Lab | `piston-lab.html` |
+| 6.5 Calorimetry, Lesson 1 | Calorimetry Lab · Part 1 | `calorimetry-lab-1.html` |
+| 6.5 Calorimetry, Lesson 2 | Calorimetry Lab · Part 2 | `calorimetry-lab-2.html` |
 
-Every page is a single self-contained HTML file. The only outside resource is Google Fonts. `index.html` links to all five pages.
+Every page is a single self-contained HTML file. The only outside resource is Google Fonts. `index.html` links to all seven pages.
