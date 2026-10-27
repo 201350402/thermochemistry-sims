@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sand &amp; Sea Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column lab bench — header, tab bar, one working card per tab; stacks on phones */
+:root{
+  --bg:#F4F7FA; --surface:#FFFFFF; --ink:#142235; --muted:#56677C; --line:#D5DEE8; --soft:#EAF0F6;
+  --accent:#1F6F8B; --accent-ink:#FFFFFF; --exo:#C2410C; --exo-soft:#FCE9DE; --endo:#2563A8; --endo-soft:#E2ECF8;
+  --ok:#2F7D4F; --ok-soft:#E3F2E8; --bad:#B42318; --bad-soft:#FBE6E4;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif; --f-num:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1722; --surface:#172231; --ink:#E6EDF5; --muted:#9AA9BB; --line:#2A3A4E; --soft:#1E2B3C;
+  --accent:#5FB3CF; --accent-ink:#0F1722; --exo:#F08A4B; --exo-soft:#3A2418; --endo:#7AB0EC; --endo-soft:#1B2B42;
+  --ok:#5CC28A; --ok-soft:#183324; --bad:#F07167; --bad-soft:#3A1D1B; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+header.top h1{font-size:clamp(1.4rem,3.2vw,1.9rem);margin:0;line-height:1.15;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.badge{font-family:var(--f-num);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1.5px solid var(--accent);border-radius:999px;padding:4px 12px;white-space:nowrap}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+nav.tabs button{font:600 .95rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:1.15rem;margin:0}
+.card h3{font-size:1rem;margin:0}
+.how{background:var(--soft);border-radius:10px;padding:12px 14px;margin:0}
+.how ol{margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .92rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.btn{font:600 .95rem var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.exo{background:var(--exo);border-color:var(--exo);color:#fff}
+.btn.endo{background:var(--endo);border-color:var(--endo);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eq{font-family:var(--f-num);font-size:1.02rem;background:var(--soft);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-num);font-size:1.6rem;font-weight:700}
+.feedback{border-radius:10px;padding:10px 12px;margin:0}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--soft);color:var(--ink)}
+.tag{display:inline-block;font:700 .78rem var(--f-num);letter-spacing:.05em;padding:3px 9px;border-radius:999px}
+.tag.exo{background:var(--exo-soft);color:var(--exo)}
+.tag.endo{background:var(--endo-soft);color:var(--endo)}
+.tag.dok{background:var(--soft);color:var(--accent)}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:2rem 1fr;gap:10px;align-items:start;background:var(--soft);border-radius:10px;padding:10px 12px}
+.steps li b.n{font-family:var(--f-num);color:var(--accent)}
+label.field{display:grid;gap:4px;font-weight:500}
+input[type=number],input[type=text],select{font:500 1rem var(--f-num);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:220px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .axis{stroke:var(--ink);stroke-width:2;fill:none}
+svg .lvl{stroke:var(--ink);stroke-width:5;stroke-linecap:round}
+svg .dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+svg .arr-exo{stroke:var(--exo);stroke-width:4;fill:none}
+svg .arr-endo{stroke:var(--endo);stroke-width:4;fill:none}
+svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
+svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
+.keybox{font-size:.9rem;color:var(--muted)}
+.keybox b{color:var(--ink)}
+.quiz{display:grid;gap:14px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.q p{margin:0}
+.opts{display:grid;gap:8px}
+.opts button{font:500 .95rem var(--f-body);text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.score{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+footer.note{font-size:.85rem;color:var(--muted)}
+/* Results card: always light so every screenshot on Toddle looks the same */
+nav.tabs button[data-tab="results"]{border-color:#B7791F;color:#8A5A0B}
+nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;border-color:#B7791F;color:#fff}
+.who{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.who input{max-width:260px}
+.rc{--rc-ink:#142235;--rc-muted:#56677C;--rc-line:#D5DEE8;--rc-soft:#F1F5F9;--rc-acc:#1F6F8B;--rc-star:#C98A0B;
+  background:#FFFFFF;color:var(--rc-ink);border:2px solid var(--rc-acc);border-radius:16px;padding:18px;display:grid;gap:14px;max-width:560px;width:100%;margin:0 auto;box-shadow:0 2px 10px rgba(20,34,53,.08)}
+.rc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rc-lab{font-size:1.25rem;font-weight:700;line-height:1.2}
+.rc-sub{color:var(--rc-muted);font-size:.85rem}
+.rc-total{text-align:right;display:grid;justify-items:end}
+.rc-total b{font:700 1.5rem var(--f-num);color:var(--rc-ink)}
+.rc-total span{font-size:.8rem;color:var(--rc-muted)}
+.rc-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:var(--rc-soft);border-radius:10px;padding:10px 12px}
+.rc-who div{display:grid;gap:2px;min-width:0}
+.rc-who span{font-size:.75rem;color:var(--rc-muted);text-transform:uppercase;letter-spacing:.05em}
+.rc-who b{font-size:.95rem;overflow-wrap:anywhere}
+.rc-who b.missing{color:#B42318;font-weight:600}
+.rc table{width:100%;border-collapse:collapse;font-size:.92rem}
+.rc th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--rc-muted);text-align:left;font-weight:600;padding:0 6px 6px}
+.rc td{padding:8px 6px;border-top:1px solid var(--rc-line);vertical-align:middle}
+.rc td.n,.rc th.n{text-align:center;font-family:var(--f-num)}
+.rc .st,.rc .star{font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols 2",system-ui,sans-serif;font-weight:400}
+.rc .st{font-size:1.45rem;letter-spacing:2px;white-space:nowrap;line-height:1}
+.rc .star{font-size:1.6rem;color:var(--rc-star);margin-right:4px;vertical-align:-2px}
+.rc .st .on{color:var(--rc-star)} .rc .st .off{color:var(--rc-line)}
+.rc td small{display:block;color:var(--rc-muted);font-size:.78rem}
+.rc-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.75rem;color:var(--rc-muted);border-top:1px solid var(--rc-line);padding-top:10px}
+.rc-msg{font-weight:600;color:var(--rc-acc);text-align:center;margin:0}
+@media (max-width:420px){.rc{padding:14px}.rc-who{grid-template-columns:1fr 1fr}.rc-who div:last-child{grid-column:1 / -1}.rc table{font-size:.85rem}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>
+.scene svg{width:100%;max-width:640px;display:block;margin:0 auto}
+.graph svg{width:100%;max-width:640px;display:block;margin:0 auto}
+table.res{width:100%;border-collapse:collapse;font-size:.95rem}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+table.res td.n,table.res th.n{text-align:right;font-family:var(--f-num)}
+.ask{display:grid;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.ask .opts{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.fields{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.fields input{max-width:170px}
+.model{font-size:.85rem;color:var(--muted);margin:0}
+.counter{font-family:var(--f-num);font-weight:700}
+</style>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Sand &amp; Sea Lab</h1><p>The same sun shines on sand and on sea water. Why does the sand burn your feet while the sea stays cool?</p></div>
+    <span class="badge">Chapter 6.5 · Lesson 1</span>
+  </header>
+  <nav class="tabs" aria-label="Activities">
+    <button type="button" data-tab="race">1 · Beach race</button>
+    <button type="button" data-tab="findc">2 · Find c</button>
+    <button type="button" data-tab="mass">3 · More sand?</button>
+  </nav>
+
+  <section class="tab card" id="race">
+    <div class="how"><ol>
+      <li>Each tray has <b>100 g</b>: one of dry sand, one of water. Both start at <b>30.0 °C</b>.</li>
+      <li>The sun gives each tray the <b>same heat: 10 J every second</b>.</li>
+      <li>Predict first. Then press <b>▶ Sunshine</b>. It stops by itself at 120 s.</li>
+    </ol></div>
+    <div class="ask"><b>My prediction: after 2 minutes…</b><div class="chips" id="predOpts"></div></div>
+    <div class="scene"><svg viewBox="0 0 640 300" id="scene" role="img" aria-label="Sun shining on a tray of sand and a tray of water, each with a thermometer"></svg></div>
+    <div class="row"><button type="button" class="btn" id="go">▶ Sunshine</button><button type="button" class="btn ghost" id="reset">Reset</button><span>Time: <span class="counter" id="tNow">0</span> s · Heat into each tray: <span class="counter" id="qNow">0</span> J</span></div>
+    <div class="graph"><svg viewBox="0 0 640 260" id="graph" role="img" aria-label="Graph of temperature against time for sand and water"></svg></div>
+    <p class="feedback info" id="rFb">Make your prediction, then press ▶ Sunshine.</p>
+    <table class="res"><thead><tr><th>Tray</th><th class="n">m (g)</th><th class="n">q (J)</th><th class="n">t start (°C)</th><th class="n">t end (°C)</th><th class="n">Δt (°C)</th></tr></thead><tbody id="rows"></tbody></table>
+    <div id="raceQs" hidden style="display:grid;gap:12px"></div>
+    <p class="model">Model: no heat is lost to the air; dry sand c = 0.83 J/g·°C (a typical value; real sand varies); water c = 4.184 J/g·°C (Table 6.2). The 2 minutes are sped up.</p>
+  </section>
+
+  <section class="tab card" id="findc" hidden>
+    <div class="how"><ol>
+      <li>Use your Beach race results (they are copied below).</li>
+      <li>Specific heat <b>c</b> = heat needed to raise <b>1 g</b> by <b>1 °C</b>. So <b>c = q ÷ (m × Δt)</b>.</li>
+      <li>Calculate c for sand and for water. Get <b>2 correct</b>.</li>
+    </ol></div>
+    <table class="res"><thead><tr><th>Tray</th><th class="n">q (J)</th><th class="n">m (g)</th><th class="n">Δt (°C)</th></tr></thead><tbody id="cRows"></tbody></table>
+    <div class="fields">
+      <label class="field" for="cSand">c of sand (J/g·°C)<input type="number" id="cSand" step="any"></label>
+      <label class="field" for="cWater">c of water (J/g·°C)<input type="number" id="cWater" step="any"></label>
+    </div>
+    <div class="row"><button type="button" class="btn" id="cCheck">Check</button><button type="button" class="btn ghost" id="cHint">Show me the steps</button></div>
+    <ul class="steps" id="cSteps" hidden></ul>
+    <p class="feedback info" id="cFb">Divide the heat by (mass × temperature change). Round to 2 decimal places.</p>
+    <p class="score">Correct: <span id="cScore">0</span> / 2</p>
+  </section>
+
+  <section class="tab card" id="mass" hidden>
+    <div class="how"><ol>
+      <li>Now there is <b>only sand</b>. Choose a mass, then press <b>▶ Sunshine</b> (60 s = 600 J).</li>
+      <li>Try <b>at least 2 different masses</b>. Look at Δt.</li>
+      <li>Answer the 3 questions.</li>
+    </ol></div>
+    <div class="chips" id="mOpts"></div>
+    <div class="row"><button type="button" class="btn" id="mGo">▶ Sunshine 600 J</button></div>
+    <div class="scene"><svg viewBox="0 0 640 230" id="mScene" role="img" aria-label="A tray of sand under the sun with a thermometer"></svg></div>
+    <table class="res"><thead><tr><th>Mass of sand (g)</th><th class="n">q (J)</th><th class="n">Δt (°C)</th><th class="n">C = q ÷ Δt (J/°C)</th></tr></thead><tbody id="mRows"></tbody></table>
+    <div class="quiz" id="mQuiz" hidden></div>
+    <p class="score" id="mScoreLine" hidden>Score: <span id="mScore"></span></p>
+  </section>
+
+  <div class="card keybox">
+    <div><b>Symbol key:</b> <b>q</b> = heat (J) · <b>m</b> = mass (g) · <b>c</b> = specific heat (J/g·°C): heat to raise <b>1 g</b> by <b>1 °C</b> · <b>C</b> = heat capacity (J/°C): heat to raise a given amount by 1 °C · <b>Δt</b> = t(final) − t(initial)</div>
+    <div><b>Key equations:</b> <span class="num">q = mcΔt</span> · <span class="num">c = q ÷ (mΔt)</span> · <span class="num">C = mc</span></div>
+  </div>
+  <footer class="note">Grade 11 Chemistry · Chapter 6.5 Calorimetry · Madar International School.</footer>
+</div>
+<script>
+// tabs
+function setupTabs(){
+  const btns=[...document.querySelectorAll('nav.tabs button')];
+  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
+    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
+  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
+}
+// subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
+function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
+function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
+function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
+// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
+function diagram(Hr,Hp,rLabel,pLabel,dHtext){
+  const W=340,H=230,top=34,bot=196;
+  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
+  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
+  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
+  const ax=210;
+  let arrow='';
+  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
+   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
+   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
+   ${arrow}</svg>`;
+}
+// ---------- results tracking ----------
+// track(id,label,total,unit): register an activity. tryOnce(id): one attempt. setScore(id,n): best result so far.
+const RES={order:[],a:{}};
+function track(id,label,total,unit){if(!RES.a[id])RES.order.push(id);RES.a[id]={label,total,unit,score:0,tries:0};}
+function tryOnce(id){const a=RES.a[id];if(!a)return;a.tries++;renderResults();}
+function setScore(id,n){const a=RES.a[id];if(!a)return;a.score=Math.max(a.score,Math.min(n,a.total));renderResults();}
+function starsOf(a){const f=a.total?a.score/a.total:0;return f>=0.8?3:f>=0.5?2:f>0?1:0;}
+const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v);}catch(e){return '';}}
+function setupResults(){
+  const nav=document.querySelector('nav.tabs'),tabs=[...document.querySelectorAll('section.tab')],last=tabs[tabs.length-1];
+  const b=document.createElement('button');b.type='button';b.dataset.tab='results';b.textContent='★ My results';nav.appendChild(b);
+  const s=document.createElement('section');s.className='tab card';s.id='results';s.hidden=true;
+  s.innerHTML=`<div class="how"><ol>
+      <li>Do all the activities first. Your stars and tries are counted for you.</li>
+      <li>Type your <b>name</b> and <b>class</b>.</li>
+      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    <div id="rCard"></div>`;
+  last.after(s);
+  const n=document.getElementById('rName'),c=document.getElementById('rClass');
+  n.value=store('labName');c.value=store('labClass');
+  n.addEventListener('input',()=>{store('labName',n.value);renderResults();});
+  c.addEventListener('input',()=>{store('labClass',c.value);renderResults();});
+  b.addEventListener('click',renderResults);
+  renderResults();
+}
+function renderResults(){
+  const box=document.getElementById('rCard');if(!box)return;
+  const lab=document.querySelector('header.top h1').textContent,sub=document.querySelector('header.top .badge').textContent;
+  const name=(document.getElementById('rName').value||'').trim(),cls=(document.getElementById('rClass').value||'').trim();
+  const d=new Date(),date=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  let tot=0,max=0,tries=0;
+  const rows=RES.order.map(id=>{const a=RES.a[id],s=starsOf(a);tot+=s;max+=3;tries+=a.tries;
+    return `<tr><td>${esc(a.label)}<small>${a.tries?`${a.score} / ${a.total} ${esc(a.unit)}`:'not started'}</small></td>
+      <td class="n"><span class="st" aria-label="${s} of 3 stars"><span class="on">${'★'.repeat(s)}</span><span class="off">${'★'.repeat(3-s)}</span></span></td>
+      <td class="n">${a.tries}</td></tr>`;}).join('');
+  const msg=tot===max?'All stars! Excellent work.':tot>=max*2/3?'Great work! Go back to any activity to earn more stars.':'Keep going: go back to the activities to earn more stars.';
+  box.innerHTML=`<div class="rc" id="resultCard">
+    <div class="rc-head"><div><div class="rc-lab">${esc(lab)}</div><div class="rc-sub">${esc(sub)} · Results card</div></div>
+      <div class="rc-total"><b><span class="star">★</span>${tot} / ${max}</b><span>${tries} ${tries===1?'try':'tries'} in total</span></div></div>
+    <div class="rc-who"><div><span>Name</span><b class="${name?'':'missing'}">${name?esc(name):'type your name'}</b></div>
+      <div><span>Class</span><b class="${cls?'':'missing'}">${cls?esc(cls):'type your class'}</b></div>
+      <div><span>Date</span><b>${date}, ${time}</b></div></div>
+    <table><thead><tr><th>Activity</th><th class="n">Stars</th><th class="n">Tries</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="rc-msg">${msg}</p>
+    <div class="rc-foot"><span>Grade 11 Chemistry · Madar International School</span><span>★★★ = 80% or more</span></div>
+  </div>`;
+}
+// multiple-choice quiz builder (tid = activity id for the results card)
+function buildQuiz(el,qs,scoreEl,tid='check'){
+  let score=0,done=0;
+  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const box=document.createElement('div');box.className='q';
+    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
+    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
+      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;if(done===0)tryOnce(tid);done++;
+        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
+        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+        fb.hidden=false;upd();setScore(tid,score);});
+      opts.appendChild(b);});
+    el.appendChild(box);});
+  upd();
+}
+</script>
+
+<script>
+const C_SAND=0.83,C_W=4.184,P=10,TMAX=120,T0=30.0,M=100;
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let pred=null,t=0,timer=null,finished=false,raceScore=0,raceQdone=0;
+const tempAt=(c,m,tt)=>T0+P*tt/(m*c);
+// prediction
+[['sand','Sand is hotter'],['water','Water is hotter'],['same','Both the same']].forEach(([k,txt])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed','false');b.textContent=txt;
+ b.onclick=()=>{if(timer||finished)return;pred=k;[...$('predOpts').children].forEach(x=>x.setAttribute('aria-pressed',x===b));$('rFb').className='feedback info';$('rFb').textContent='Prediction saved. Press ▶ Sunshine.';};$('predOpts').appendChild(b);});
+function thermo(x,y,h,temp,lo,hi,col){const f=Math.max(0,Math.min(1,(temp-lo)/(hi-lo)));
+ return `<rect x="${x-9}" y="${y-h}" width="18" height="${h}" rx="9" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5"/><circle cx="${x}" cy="${y+10}" r="15" fill="${col}" stroke="var(--ink)" stroke-width="2.5"/><rect x="${x-4.5}" y="${y-h*f}" width="9" height="${h*f+8}" rx="4.5" fill="${col}"/>
+ <text x="${x}" y="${y-h-10}" text-anchor="middle" font-size="17" font-weight="700" font-family="var(--f-num)">${temp.toFixed(1)} °C</text>`;}
+function heatCol(temp){const k=Math.max(0,Math.min(1,(temp-30)/16));return `rgb(${Math.round(45+(204-45)*k)},${Math.round(108+(75-108)*k)},${Math.round(162+(49-162)*k)})`;}
+function sun(on,cx){const rays=on?[...Array(10)].map((_,i)=>{const a=i/10*Math.PI*2;return `<line x1="${cx+Math.cos(a)*40}" y1="${50+Math.sin(a)*40}" x2="${cx+Math.cos(a)*56}" y2="${50+Math.sin(a)*56}" stroke="#E2A72E" stroke-width="5" stroke-linecap="round"/>`;}).join(''):'';
+ return `${rays}<circle cx="${cx}" cy="50" r="30" fill="${on?'#F4C142':'#F3E2B0'}" stroke="#C99520" stroke-width="2"/>`;}
+function beams(on,x1,x2){if(!on)return '';return [x1,x2].map(x=>[0,1,2].map(i=>`<line x1="${320+(i-1)*20}" y1="92" x2="${x+(i-1)*40}" y2="165" stroke="#E2A72E" stroke-width="3" stroke-dasharray="8 10" opacity=".8"><animate attributeName="stroke-dashoffset" from="36" to="0" dur="${reduce?0:0.8}s" repeatCount="${reduce?0:'indefinite'}"/></line>`).join('')).join('');}
+function drawScene(){const ts=tempAt(C_SAND,M,t),tw=tempAt(C_W,M,t),on=!!timer;
+ $('scene').innerHTML=`${sun(on,320)}${beams(on,150,470)}
+  <rect x="60" y="170" width="190" height="70" rx="8" fill="#E9CF97" stroke="var(--ink)" stroke-width="3"/>${[...Array(26)].map((_,i)=>`<circle cx="${72+(i*37)%170}" cy="${184+(i*23)%48}" r="2.5" fill="#C9A15C"/>`).join('')}
+  <text x="155" y="265" text-anchor="middle" font-size="16" font-weight="700">100 g dry sand</text>
+  <rect x="390" y="170" width="190" height="70" rx="8" fill="#9CC8EA" stroke="var(--ink)" stroke-width="3"/><path d="M400 192 q15 -8 30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>
+  <text x="485" y="265" text-anchor="middle" font-size="16" font-weight="700">100 g water</text>
+  ${thermo(270,225,110,ts,30,46,heatCol(ts))}${thermo(600,225,110,tw,30,46,heatCol(tw))}`;
+ $('tNow').textContent=Math.round(t);$('qNow').textContent=Math.round(P*t);drawGraph();}
+function drawGraph(){const X=v=>60+v/TMAX*550,Y=v=>220-(v-30)/16*190;
+ let s=`<line class="axis" x1="60" y1="220" x2="620" y2="220"/><line class="axis" x1="60" y1="220" x2="60" y2="20"/>`;
+ for(let v=30;v<=46;v+=4)s+=`<line x1="56" x2="620" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="50" y="${Y(v)+5}" text-anchor="end" font-size="13">${v}</text>`;
+ for(let v=0;v<=120;v+=30)s+=`<text x="${X(v)}" y="240" text-anchor="middle" font-size="13">${v}</text>`;
+ s+=`<text x="340" y="258" text-anchor="middle" font-size="13">time (s)</text><text x="16" y="120" text-anchor="middle" font-size="13" transform="rotate(-90 16 120)">temperature (°C)</text>`;
+ const line=(c,col,lab)=>{const pts=[];for(let k=0;k<=t;k+=2)pts.push(`${X(k)},${Y(tempAt(c,M,k))}`);pts.push(`${X(t)},${Y(tempAt(c,M,t))}`);
+  return `<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="4" stroke-linejoin="round"/><text x="${X(t)-6}" y="${Y(tempAt(c,M,t))-10}" text-anchor="end" font-size="14" font-weight="700" fill="${col}">${lab}</text>`;};
+ s+=line(C_SAND,'#CC4B31','sand')+line(C_W,'#2D6CA2','water');$('graph').innerHTML=s;}
+function rows(){const r=(n,c)=>{const end=tempAt(c,M,t);return `<tr><td>${n}</td><td class="n">${M}</td><td class="n">${Math.round(P*t)}</td><td class="n">${T0.toFixed(1)}</td><td class="n">${finished?end.toFixed(1):'–'}</td><td class="n">${finished?'+'+(end-T0).toFixed(1):'–'}</td></tr>`;};
+ $('rows').innerHTML=r('Dry sand',C_SAND)+r('Water',C_W);
+ const dS=(tempAt(C_SAND,M,TMAX)-T0).toFixed(1),dW=(tempAt(C_W,M,TMAX)-T0).toFixed(1);
+ $('cRows').innerHTML=`<tr><td>Dry sand</td><td class="n">1200</td><td class="n">100</td><td class="n">${dS}</td></tr><tr><td>Water</td><td class="n">1200</td><td class="n">100</td><td class="n">${dW}</td></tr>`;}
+$('go').onclick=()=>{if(timer||finished)return;if(!pred){$('rFb').className='feedback bad';$('rFb').textContent='Make a prediction first.';return;}
+ tryOnce('race');const step=()=>{t=Math.min(TMAX,t+(reduce?TMAX:1.5));drawScene();if(t>=TMAX){clearInterval(timer);timer=null;finished=true;drawScene();rows();done();}};timer=setInterval(step,reduce?10:100);drawScene();};
+$('reset').onclick=()=>{if(timer)return;t=0;finished=false;drawScene();rows();$('raceQs').hidden=true;$('rFb').className='feedback info';$('rFb').textContent='Press ▶ Sunshine to run it again.';};
+function done(){const ok=pred==='sand';$('rFb').className='feedback '+(ok?'ok':'bad');
+ $('rFb').textContent=(ok?'Your prediction was right! ':'The evidence is different from your prediction: that is how scientists learn. ')+`The same 1200 J made the sand rise ${(tempAt(C_SAND,M,TMAX)-T0).toFixed(1)} °C but the water only ${(tempAt(C_W,M,TMAX)-T0).toFixed(1)} °C.`;
+ raceScore=Math.max(raceScore,1);setScore('race',raceScore+raceQdone);
+ if(!$('raceQs').dataset.built){$('raceQs').dataset.built=1;const qs=[
+  {q:'Which one needs MORE heat to warm up by 1 °C?',o:['dry sand','water','they need the same'],a:1,why:'Water: 1200 J gave it only a small Δt, so each 1 °C needs a lot of heat.'},
+  {q:'The specific heat (c) is the heat needed to raise 1 g by 1 °C. Which has the HIGHER specific heat?',o:['dry sand','water'],a:1,why:'Water. A high specific heat means a small temperature rise for the same heat. This is why the sea stays cool.'}];
+  qs.forEach((q,i)=>{const box=document.createElement('div');box.className='ask';box.innerHTML=`<b>Question ${i+1}: ${q.q}</b><div class="opts"></div><p class="feedback" hidden></p>`;const o=box.querySelector('.opts'),fb=box.querySelector('.feedback');
+   q.o.forEach((t_,j)=>{const b=document.createElement('button');b.type='button';b.textContent=t_;b.onclick=()=>{if(box.dataset.done)return;box.dataset.done=1;tryOnce('race');
+     if(j===q.a){b.classList.add('right');raceQdone++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}else{b.classList.add('wrong');o.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
+     fb.hidden=false;setScore('race',raceScore+raceQdone);};o.appendChild(b);});$('raceQs').appendChild(box);});}
+ $('raceQs').hidden=false;}
+// ---- find c
+let cScore=0,cDone={};
+$('cCheck').onclick=()=>{tryOnce('findc');const vs=parseFloat($('cSand').value),vw=parseFloat($('cWater').value);
+ const dS=+(tempAt(C_SAND,M,TMAX)-T0).toFixed(1),dW=+(tempAt(C_W,M,TMAX)-T0).toFixed(1);const tS=1200/(100*dS),tW=1200/(100*dW);
+ const okS=Math.abs(vs-tS)/tS<=0.03,okW=Math.abs(vw-tW)/tW<=0.03;if(okS)cDone.s=1;if(okW)cDone.w=1;cScore=Object.keys(cDone).length;$('cScore').textContent=cScore;setScore('findc',cScore);
+ const fb=$('cFb');if(okS&&okW){fb.className='feedback ok';fb.textContent=`Both correct! Sand ≈ ${tS.toFixed(2)} and water ≈ ${tW.toFixed(2)} J/g·°C. Water's c is about 5 times bigger: that is why the sea stays cool.`;}
+ else{fb.className='feedback bad';fb.textContent=(okS?'Sand is correct. ':(isNaN(vs)?'Type c for sand. ':'Check sand: 1200 ÷ (100 × '+dS+'). '))+(okW?'Water is correct.':(isNaN(vw)?'Type c for water.':'Check water: 1200 ÷ (100 × '+dW+').'));}};
+$('cHint').onclick=()=>{const dS=(tempAt(C_SAND,M,TMAX)-T0).toFixed(1);const s=$('cSteps');s.hidden=!s.hidden;
+ s.innerHTML=`<li><b class="n">1</b> Write the formula: c = q ÷ (m × Δt)</li><li><b class="n">2</b> Sand: m × Δt = 100 × ${dS} = ${(100*dS).toFixed(0)}</li><li><b class="n">3</b> c = 1200 ÷ ${(100*dS).toFixed(0)} = ? J/g·°C. Now do the same for water.</li>`;};
+// ---- more sand
+const MASSES=[50,100,200];let mSel=100,mDoneSet=new Set(),mT=0,mQuizBuilt=false;
+MASSES.forEach(m=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed',m===mSel);b.textContent=m+' g of sand';b.onclick=()=>{mSel=m;mT=0;[...$('mOpts').children].forEach(x=>x.setAttribute('aria-pressed',x===b));drawM();};$('mOpts').appendChild(b);});
+function drawM(on=false){const temp=T0+P*mT/(mSel*C_SAND);const w=Math.round(80+mSel*0.55);
+ $('mScene').innerHTML=`${sun(on,320)}${on?beams(true,300,300):''}<rect x="${300-w/2}" y="150" width="${w}" height="55" rx="8" fill="#E9CF97" stroke="var(--ink)" stroke-width="3"/><text x="300" y="222" text-anchor="middle" font-size="15" font-weight="700">${mSel} g dry sand</text>${thermo(560,195,110,temp,30,46,heatCol(temp))}`;}
+let mTimer=null;
+$('mGo').onclick=()=>{if(mTimer)return;tryOnce('mass');mT=0;mTimer=setInterval(()=>{mT=Math.min(60,mT+(reduce?60:1.5));drawM(true);if(mT>=60){clearInterval(mTimer);mTimer=null;drawM(false);mDoneSet.add(mSel);mRows();}},reduce?10:60);};
+function mRows(){$('mRows').innerHTML=MASSES.filter(m=>mDoneSet.has(m)).map(m=>{const d=600/(m*C_SAND);return `<tr><td>${m}</td><td class="n">600</td><td class="n">+${d.toFixed(1)}</td><td class="n">${(600/d).toFixed(1)}</td></tr>`;}).join('');
+ if(mDoneSet.size>=2&&!mQuizBuilt){mQuizBuilt=true;$('mQuiz').hidden=false;$('mScoreLine').hidden=false;buildQuiz($('mQuiz'),[
+  {q:'The mass of sand doubles (100 g → 200 g). With the same heat, Δt…',o:['doubles','halves','stays the same'],a:1,why:'Twice the sand shares the same heat, so each gram warms half as much.'},
+  {q:'Does the specific heat (c) of sand change when there is more sand?',o:['Yes, it gets bigger','No, it stays 0.83 J/g·°C','Yes, it gets smaller'],a:1,why:'c is per gram, so it does not depend on the amount: it is an intensive property.'},
+  {q:'What is the heat capacity (C = mc) of 200 g of sand?',o:['166 J/°C','0.83 J/°C','241 J/°C'],a:0,why:'C = 200 g × 0.83 J/g·°C = 166 J/°C. C depends on the amount: it is an extensive property.'}],$('mScore'),'mass');}}
+track('race','Beach race (run + 2 questions)',3,'points');track('findc','Find c',2,'correct');track('mass','More sand? (3 questions)',3,'best score');
+setupResults();setupTabs();drawScene();rows();drawM();
+</script>
+
+</html>
