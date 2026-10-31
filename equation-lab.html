@@ -131,13 +131,12 @@ nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;bor
 </style>
 <div class="wrap">
   <header class="top">
-    <div><h1>Thermochemical Equation Lab</h1><p>Change an equation and watch ΔH follow the rules. Then turn grams into kilojoules.</p></div>
+    <div><h1>Thermochemical Equation Lab</h1><p>Change an equation and watch ΔH follow the rules.</p></div>
     <span class="badge">Chapter 6.4 · Lesson 2</span>
   </header>
   <nav class="tabs" aria-label="Activities">
     <button type="button" data-tab="rules">1 · Rule machine</button>
-    <button type="button" data-tab="grams">2 · Grams → kJ</button>
-    <button type="button" data-tab="check">3 · Quick check</button>
+    <button type="button" data-tab="check">2 · Quick check</button>
   </nav>
 
   <section class="tab card" id="rules">
@@ -166,34 +165,6 @@ nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;bor
     <div id="targets" style="display:grid;gap:8px"></div>
   </section>
 
-  <section class="tab card" id="grams" hidden>
-    <div class="how"><ol>
-      <li>Choose a reaction and type a mass in grams.</li>
-      <li>“Show me” mode: read the 3 steps. “Test me” mode: work it out first, then check.</li>
-      <li>Get <b>3 correct</b> in “Test me” mode (use different reactions or masses).</li>
-    </ol></div>
-    <div class="row" id="gList"></div>
-    <div class="eq" id="gEq"></div>
-    <div class="row">
-      <label class="field" for="mass">Mass (g)<input type="number" id="mass" min="0.1" step="0.1" value="87.9"></label>
-      <div class="row" style="align-self:end">
-        <button type="button" class="chip" id="mShow" aria-pressed="true">Show me</button>
-        <button type="button" class="chip" id="mTest" aria-pressed="false">Test me</button>
-      </div>
-    </div>
-    <ul class="steps" id="gSteps"></ul>
-    <div id="gTest" hidden style="display:grid;gap:10px">
-      <div class="row">
-        <label class="field" for="tMol">① moles (mol)<input type="number" id="tMol" step="any"></label>
-        <label class="field" for="tKj">③ heat (kJ, no sign)<input type="number" id="tKj" step="any"></label>
-        <label class="field" for="tDir">④ direction<select id="tDir"><option value="">choose…</option><option value="rel">released</option><option value="abs">absorbed</option></select></label>
-      </div>
-      <button type="button" class="btn" id="tCheck" style="justify-self:start">Check my answer</button>
-      <p class="feedback info" id="tFb">Use the 3 steps on your paper first.</p>
-    </div>
-    <div><div class="row" style="justify-content:space-between"><span id="hbLbl">Heat</span><span class="num" id="hbVal"></span></div><div class="heatbar"><div id="hb"></div></div></div>
-  </section>
-
   <section class="tab card" id="check" hidden>
     <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
     <div class="quiz" id="quiz"></div>
@@ -202,7 +173,7 @@ nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;bor
 
   <div class="card keybox">
     <div><b>The 3 rules:</b> ① write the states (s) (l) (g) (aq): they change ΔH · ② multiply the equation by n → multiply ΔH by n · ③ reverse the equation → same number, opposite sign</div>
-    <div><b>Symbol key:</b> <b>n</b> = moles (mol) · <b>m</b> = mass (g) · <b>M</b> = molar mass (g/mol) · <b>kJ/mol</b> = kJ for each mole of reaction as written · <b>coefficient</b> = the big number in front of a formula</div>
+    <div><b>Symbol key:</b> <b>n</b> = moles (mol) · <b>kJ/mol</b> = kJ for each mole of reaction as written · <b>coefficient</b> = the big number in front of a formula</div>
   </div>
   <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 243–246). Grade 11 Chemistry · Madar International School.</footer>
 </div>
@@ -369,48 +340,6 @@ function checkTargets(){
  setScore('rules',tState.filter(x=>x.done).length);
 }
 
-// ---------- grams to kJ ----------
-const RX=[
- {n:"SO₂ → SO₃",e:"2SO2(g) + O2(g) → 2SO3(g)",dH:-198.2,sp:"SO2",M:64.07,c:2,m:87.9},
- {n:"Methane burns",e:"CH4(g) + 2O2(g) → CO2(g) + 2H2O(l)",dH:-890.4,sp:"CH4",M:16.04,c:1,m:32.08},
- {n:"Propane burns",e:"C3H8(g) + 5O2(g) → 3CO2(g) + 4H2O(g)",dH:-2220,sp:"C3H8",M:44.10,c:1,m:53.2},
- {n:"White phosphorus burns",e:"P4(s) + 5O2(g) → P4O10(s)",dH:-3013,sp:"P4",M:123.88,c:1,m:266},
- {n:"Ice melts",e:"H2O(s) → H2O(l)",dH:6.01,sp:"H2O",M:18.02,c:1,m:36.04},
-];
-let g=0,mode='show';const gRight=new Set();
-const gl=document.getElementById('gList');
-RX.forEach((r,i)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=r.n;b.setAttribute('aria-pressed',i===0);
- b.onclick=()=>{g=i;[...gl.children].forEach((c,k)=>c.setAttribute('aria-pressed',k===i));document.getElementById('mass').value=r.m;calc();};gl.appendChild(b);});
-function calc(){
- const r=RX[g],m=+document.getElementById('mass').value||0,n=m/r.M,per=r.dH/r.c,q=n*per;
- document.getElementById('gEq').textContent=chem(r.e)+'      ΔH = '+(r.dH>0?'+':'−')+Math.abs(r.dH)+' kJ/mol';
- const show=mode==='show';
- document.getElementById('gSteps').innerHTML=show?`
-  <li><b class="n">①</b><span>Moles: n = m ÷ M = ${m} ÷ ${r.M} = <span class="num">${sig(n,3)} mol ${chem(r.sp)}</span></span></li>
-  <li><b class="n">②</b><span>ΔH for 1 mol of ${chem(r.sp)}: ${String(r.dH).replace('-','−')} ÷ ${r.c} = <span class="num">${per.toFixed(Math.abs(per)<10?2:1).replace('-','−')} kJ/mol</span>${r.c>1?' (the equation has '+r.c+' mol '+chem(r.sp)+')':''}</span></li>
-  <li><b class="n">③</b><span>Heat = n × ΔH per mol = <span class="num">${sig(n,3)} × ${Math.abs(per)} = ${sig(Math.abs(q),3)} kJ</span></span></li>
-  <li><b class="n">④</b><span>${q<0?'<span class="tag exo">RELEASED</span> ΔH is negative: heat is given off':'<span class="tag endo">ABSORBED</span> ΔH is positive: heat is taken in'}</span></li>`
-  :`<li><b class="n">①</b><span>n = m ÷ M</span></li><li><b class="n">②</b><span>ΔH for 1 mol = ΔH ÷ coefficient of ${chem(r.sp)}</span></li><li><b class="n">③</b><span>heat = n × ΔH per mol</span></li><li><b class="n">④</b><span>negative = released, positive = absorbed</span></li>`;
- document.getElementById('gTest').hidden=show;
- const max=Math.max(...RX.map(x=>Math.abs(x.dH/x.c*x.m/x.M)));
- const hb=document.getElementById('hb');hb.style.width=show?Math.min(100,Math.abs(q)/max*100)+'%':'0%';hb.style.background=q<0?'var(--exo)':'var(--endo)';
- document.getElementById('hbLbl').textContent=q<0?'Heat released':'Heat absorbed';
- document.getElementById('hbVal').textContent=show?sig(Math.abs(q),3)+' kJ':'?';
-}
-document.getElementById('mass').addEventListener('input',calc);
-document.getElementById('mShow').onclick=()=>{mode='show';document.getElementById('mShow').setAttribute('aria-pressed',true);document.getElementById('mTest').setAttribute('aria-pressed',false);calc();};
-document.getElementById('mTest').onclick=()=>{mode='test';document.getElementById('mTest').setAttribute('aria-pressed',true);document.getElementById('mShow').setAttribute('aria-pressed',false);document.getElementById('tFb').className='feedback info';document.getElementById('tFb').textContent='Use the 3 steps on your paper first.';calc();};
-document.getElementById('tCheck').onclick=()=>{
- const r=RX[g],m=+document.getElementById('mass').value||0,n=m/r.M,q=n*r.dH/r.c;
- const mo=+document.getElementById('tMol').value,kj=+document.getElementById('tKj').value,dir=document.getElementById('tDir').value;
- const near=(a,b)=>Math.abs(a-b)<=Math.abs(b)*0.02+0.005;
- const ok1=near(mo,n),ok2=near(kj,Math.abs(q)),ok3=dir===(q<0?'rel':'abs');
- tryOnce('grams');if(ok1&&ok2&&ok3){gRight.add(g+'|'+m);setScore('grams',gRight.size);}
- const fb=document.getElementById('tFb');
- if(ok1&&ok2&&ok3){fb.className='feedback ok';fb.textContent=`All correct: ${sig(n,3)} mol, ${sig(Math.abs(q),3)} kJ ${q<0?'released':'absorbed'}.`;mode='show';calc();document.getElementById('gTest').hidden=false;}
- else{fb.className='feedback bad';fb.textContent=[!ok1?'Check step ① (n = m ÷ M).':'Step ① is correct.',!ok2?'Check step ③ (did you divide ΔH by the coefficient?).':'Step ③ is correct.',!ok3?'Check step ④: what does the sign of ΔH tell you?':'Step ④ is correct.'].join(' ');}
-};
-
 const QS=[
  {dok:1,q:"You reverse a thermochemical equation. What happens to ΔH?",o:["It stays exactly the same","Same number, opposite sign","It doubles","It becomes zero"],a:1,why:"Rule 3: reversing changes the sign of ΔH."},
  {dok:1,q:"H2O(s) → H2O(l)  ΔH = +6.01 kJ. What is ΔH for 2H2O(s) → 2H2O(l)?",o:["+6.01 kJ","+3.01 kJ","+12.0 kJ","−12.0 kJ"],a:2,why:"Rule 2: × 2 → 2 × 6.01 = +12.0 kJ."},
@@ -421,8 +350,8 @@ const QS=[
 ];
 function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
 document.getElementById('qReset').addEventListener('click',quiz);
-track('rules','Rule machine missions',5,'missions');track('grams','Grams → kJ (Test me)',3,'correct');track('check','Quick check',6,'best score');
-setupResults();setupTabs();drawTargets();render();calc();quiz();
+track('rules','Rule machine missions',5,'missions');track('check','Quick check',6,'best score');
+setupResults();setupTabs();drawTargets();render();quiz();
 </script>
 
 </html>
