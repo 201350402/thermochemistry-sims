@@ -127,6 +127,25 @@ table.res td.n,table.res th.n{text-align:right;font-family:var(--f-num)}
 .fields input{max-width:170px}
 .model{font-size:.85rem;color:var(--muted);margin:0}
 .counter{font-family:var(--f-num);font-weight:700}
+.meter{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;min-width:0}
+.meter .sub{margin:0;color:var(--muted);font-size:.92rem}
+.meter .unit{font-family:var(--f-num);color:var(--muted)}
+.bar{height:14px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .4s ease}
+.tag.same{background:var(--ok-soft);color:var(--ok)}
+.tag{justify-self:start}
+.book{border:1.5px solid var(--line);border-left:8px solid var(--accent);border-radius:6px 14px 14px 6px;background:var(--surface);box-shadow:0 3px 0 var(--line),0 6px 0 var(--soft);padding:16px;display:grid;gap:14px;min-width:0}
+.book-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--f-num);font-size:.85rem;color:var(--muted)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--accent)}
+.page{display:grid;gap:12px;min-height:300px;align-content:start;min-width:0}
+.page h2{font-size:1.25rem}
+.page p{margin:0}
+.page.turn{animation:turn .35s ease}
+@keyframes turn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.book-nav{display:flex;justify-content:space-between;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
+.def{display:grid;gap:4px;background:var(--soft);border-radius:10px;padding:12px}
+.def b.k{font-size:1.05rem;color:var(--accent)}
+.page svg{width:100%;max-width:560px;display:block;margin:0 auto}
 </style>
 <div class="wrap">
   <header class="top">
@@ -135,8 +154,7 @@ table.res td.n,table.res th.n{text-align:right;font-family:var(--f-num)}
   </header>
   <nav class="tabs" aria-label="Activities">
     <button type="button" data-tab="race">1 · Beach race</button>
-    <button type="button" data-tab="findc">2 · Find c</button>
-    <button type="button" data-tab="mass">3 · More sand?</button>
+    <button type="button" data-tab="compare">2 · Specific heat vs heat capacity</button>
   </nav>
 
   <section class="tab card" id="race">
@@ -152,43 +170,24 @@ table.res td.n,table.res th.n{text-align:right;font-family:var(--f-num)}
     <p class="feedback info" id="rFb">Make your prediction, then press ▶ Sunshine.</p>
     <table class="res"><thead><tr><th>Tray</th><th class="n">m (g)</th><th class="n">q (J)</th><th class="n">t start (°C)</th><th class="n">t end (°C)</th><th class="n">Δt (°C)</th></tr></thead><tbody id="rows"></tbody></table>
     <div id="raceQs" hidden style="display:grid;gap:12px"></div>
-    <p class="model">Model: no heat is lost to the air; dry sand c = 0.83 J/g·°C (a typical value; real sand varies); water c = 4.184 J/g·°C (Table 6.2). The 2 minutes are sped up.</p>
+    <p class="model">Model: no heat is lost to the air; dry sand c (specific heat) = 0.83 J/g·°C (a typical value; real sand varies); water c (specific heat) = 4.184 J/g·°C (Table 6.2). The 2 minutes are sped up.</p>
   </section>
 
-  <section class="tab card" id="findc" hidden>
+  <section class="tab card" id="compare" hidden>
     <div class="how"><ol>
-      <li>Use your Beach race results (they are copied below).</li>
-      <li>Specific heat <b>c</b> = heat needed to raise <b>1 g</b> by <b>1 °C</b>. So <b>c = q ÷ (m × Δt)</b>.</li>
-      <li>Calculate c for sand and for water. Get <b>2 correct</b>.</li>
+      <li>This is a short <b>flip-book</b> (5 pages, about 1 minute).</li>
+      <li>Do the tap on each page, then press <b>Next ▶</b>.</li>
     </ol></div>
-    <table class="res"><thead><tr><th>Tray</th><th class="n">q (J)</th><th class="n">m (g)</th><th class="n">Δt (°C)</th></tr></thead><tbody id="cRows"></tbody></table>
-    <div class="fields">
-      <label class="field" for="cSand">c of sand (J/g·°C)<input type="number" id="cSand" step="any"></label>
-      <label class="field" for="cWater">c of water (J/g·°C)<input type="number" id="cWater" step="any"></label>
+    <div class="book" id="book" aria-live="polite">
+      <div class="book-top"><span id="pgNum">Page 1 of 5</span><span class="dots" id="pgDots"></span></div>
+      <div class="page" id="page"></div>
+      <div class="book-nav"><button type="button" class="btn ghost" id="pgBack">◀ Back</button><button type="button" class="btn" id="pgNext">Next ▶</button></div>
     </div>
-    <div class="row"><button type="button" class="btn" id="cCheck">Check</button><button type="button" class="btn ghost" id="cHint">Show me the steps</button></div>
-    <ul class="steps" id="cSteps" hidden></ul>
-    <p class="feedback info" id="cFb">Divide the heat by (mass × temperature change). Round to 2 decimal places.</p>
-    <p class="score">Correct: <span id="cScore">0</span> / 2</p>
-  </section>
-
-  <section class="tab card" id="mass" hidden>
-    <div class="how"><ol>
-      <li>Now there is <b>only sand</b>. Choose a mass, then press <b>▶ Sunshine</b> (60 s = 600 J).</li>
-      <li>Try <b>at least 2 different masses</b>. Look at Δt.</li>
-      <li>Answer the 3 questions.</li>
-    </ol></div>
-    <div class="chips" id="mOpts"></div>
-    <div class="row"><button type="button" class="btn" id="mGo">▶ Sunshine 600 J</button></div>
-    <div class="scene"><svg viewBox="0 0 640 230" id="mScene" role="img" aria-label="A tray of sand under the sun with a thermometer"></svg></div>
-    <table class="res"><thead><tr><th>Mass of sand (g)</th><th class="n">q (J)</th><th class="n">Δt (°C)</th><th class="n">C = q ÷ Δt (J/°C)</th></tr></thead><tbody id="mRows"></tbody></table>
-    <div class="quiz" id="mQuiz" hidden></div>
-    <p class="score" id="mScoreLine" hidden>Score: <span id="mScore"></span></p>
   </section>
 
   <div class="card keybox">
-    <div><b>Symbol key:</b> <b>q</b> = heat (J) · <b>m</b> = mass (g) · <b>c</b> = specific heat (J/g·°C): heat to raise <b>1 g</b> by <b>1 °C</b> · <b>C</b> = heat capacity (J/°C): heat to raise a given amount by 1 °C · <b>Δt</b> = t(final) − t(initial)</div>
-    <div><b>Key equations:</b> <span class="num">q = mcΔt</span> · <span class="num">c = q ÷ (mΔt)</span> · <span class="num">C = mc</span></div>
+    <div><b>Symbol key:</b> <b>q</b> = heat (J) · <b>m</b> = mass (g) · <b>c (specific heat)</b> (J/g·°C): heat to raise <b>1 g</b> by <b>1 °C</b> · <b>C (heat capacity)</b> (J/°C): heat to raise the whole object by 1 °C · <b>Δt</b> = t(final) − t(initial)</div>
+    <div><b>Key equations:</b> <span class="num">q = m × c (specific heat) × Δt</span> · <span class="num">C (heat capacity) = m × c (specific heat)</span></div>
   </div>
   <footer class="note">Grade 11 Chemistry · Chapter 6.5 Calorimetry · Madar International School.</footer>
 </div>
@@ -327,9 +326,7 @@ function drawGraph(){const X=v=>60+v/TMAX*550,Y=v=>220-(v-30)/16*190;
   return `<polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="4" stroke-linejoin="round"/><text x="${X(t)-6}" y="${Y(tempAt(c,M,t))-10}" text-anchor="end" font-size="14" font-weight="700" fill="${col}">${lab}</text>`;};
  s+=line(C_SAND,'#CC4B31','sand')+line(C_W,'#2D6CA2','water');$('graph').innerHTML=s;}
 function rows(){const r=(n,c)=>{const end=tempAt(c,M,t);return `<tr><td>${n}</td><td class="n">${M}</td><td class="n">${Math.round(P*t)}</td><td class="n">${T0.toFixed(1)}</td><td class="n">${finished?end.toFixed(1):'–'}</td><td class="n">${finished?'+'+(end-T0).toFixed(1):'–'}</td></tr>`;};
- $('rows').innerHTML=r('Dry sand',C_SAND)+r('Water',C_W);
- const dS=(tempAt(C_SAND,M,TMAX)-T0).toFixed(1),dW=(tempAt(C_W,M,TMAX)-T0).toFixed(1);
- $('cRows').innerHTML=`<tr><td>Dry sand</td><td class="n">1200</td><td class="n">100</td><td class="n">${dS}</td></tr><tr><td>Water</td><td class="n">1200</td><td class="n">100</td><td class="n">${dW}</td></tr>`;}
+ $('rows').innerHTML=r('Dry sand',C_SAND)+r('Water',C_W);}
 $('go').onclick=()=>{if(timer||finished)return;if(!pred){$('rFb').className='feedback bad';$('rFb').textContent='Make a prediction first.';return;}
  tryOnce('race');const step=()=>{t=Math.min(TMAX,t+(reduce?TMAX:1.5));drawScene();if(t>=TMAX){clearInterval(timer);timer=null;finished=true;drawScene();rows();done();}};timer=setInterval(step,reduce?10:100);drawScene();};
 $('reset').onclick=()=>{if(timer)return;t=0;finished=false;drawScene();rows();$('raceQs').hidden=true;$('rFb').className='feedback info';$('rFb').textContent='Press ▶ Sunshine to run it again.';};
@@ -338,35 +335,68 @@ function done(){const ok=pred==='sand';$('rFb').className='feedback '+(ok?'ok':'
  raceScore=Math.max(raceScore,1);setScore('race',raceScore+raceQdone);
  if(!$('raceQs').dataset.built){$('raceQs').dataset.built=1;const qs=[
   {q:'Which one needs MORE heat to warm up by 1 °C?',o:['dry sand','water','they need the same'],a:1,why:'Water: 1200 J gave it only a small Δt, so each 1 °C needs a lot of heat.'},
-  {q:'The specific heat (c) is the heat needed to raise 1 g by 1 °C. Which has the HIGHER specific heat?',o:['dry sand','water'],a:1,why:'Water. A high specific heat means a small temperature rise for the same heat. This is why the sea stays cool.'}];
+  {q:'c (specific heat) is the heat needed to raise 1 g by 1 °C. Which has the HIGHER c (specific heat)?',o:['dry sand','water'],a:1,why:'Water. A high c (specific heat) means a small temperature rise for the same heat. This is why the sea stays cool.'}];
   qs.forEach((q,i)=>{const box=document.createElement('div');box.className='ask';box.innerHTML=`<b>Question ${i+1}: ${q.q}</b><div class="opts"></div><p class="feedback" hidden></p>`;const o=box.querySelector('.opts'),fb=box.querySelector('.feedback');
    q.o.forEach((t_,j)=>{const b=document.createElement('button');b.type='button';b.textContent=t_;b.onclick=()=>{if(box.dataset.done)return;box.dataset.done=1;tryOnce('race');
      if(j===q.a){b.classList.add('right');raceQdone++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}else{b.classList.add('wrong');o.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
      fb.hidden=false;setScore('race',raceScore+raceQdone);};o.appendChild(b);});$('raceQs').appendChild(box);});}
  $('raceQs').hidden=false;}
-// ---- find c
-let cScore=0,cDone={};
-$('cCheck').onclick=()=>{tryOnce('findc');const vs=parseFloat($('cSand').value),vw=parseFloat($('cWater').value);
- const dS=+(tempAt(C_SAND,M,TMAX)-T0).toFixed(1),dW=+(tempAt(C_W,M,TMAX)-T0).toFixed(1);const tS=1200/(100*dS),tW=1200/(100*dW);
- const okS=Math.abs(vs-tS)/tS<=0.03,okW=Math.abs(vw-tW)/tW<=0.03;if(okS)cDone.s=1;if(okW)cDone.w=1;cScore=Object.keys(cDone).length;$('cScore').textContent=cScore;setScore('findc',cScore);
- const fb=$('cFb');if(okS&&okW){fb.className='feedback ok';fb.textContent=`Both correct! Sand ≈ ${tS.toFixed(2)} and water ≈ ${tW.toFixed(2)} J/g·°C. Water's c is about 5 times bigger: that is why the sea stays cool.`;}
- else{fb.className='feedback bad';fb.textContent=(okS?'Sand is correct. ':(isNaN(vs)?'Type c for sand. ':'Check sand: 1200 ÷ (100 × '+dS+'). '))+(okW?'Water is correct.':(isNaN(vw)?'Type c for water.':'Check water: 1200 ÷ (100 × '+dW+').'));}};
-$('cHint').onclick=()=>{const dS=(tempAt(C_SAND,M,TMAX)-T0).toFixed(1);const s=$('cSteps');s.hidden=!s.hidden;
- s.innerHTML=`<li><b class="n">1</b> Write the formula: c = q ÷ (m × Δt)</li><li><b class="n">2</b> Sand: m × Δt = 100 × ${dS} = ${(100*dS).toFixed(0)}</li><li><b class="n">3</b> c = 1200 ÷ ${(100*dS).toFixed(0)} = ? J/g·°C. Now do the same for water.</li>`;};
-// ---- more sand
-const MASSES=[50,100,200];let mSel=100,mDoneSet=new Set(),mT=0,mQuizBuilt=false;
-MASSES.forEach(m=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed',m===mSel);b.textContent=m+' g of sand';b.onclick=()=>{mSel=m;mT=0;[...$('mOpts').children].forEach(x=>x.setAttribute('aria-pressed',x===b));drawM();};$('mOpts').appendChild(b);});
-function drawM(on=false){const temp=T0+P*mT/(mSel*C_SAND);const w=Math.round(80+mSel*0.55);
- $('mScene').innerHTML=`${sun(on,320)}${on?beams(true,300,300):''}<rect x="${300-w/2}" y="150" width="${w}" height="55" rx="8" fill="#E9CF97" stroke="var(--ink)" stroke-width="3"/><text x="300" y="222" text-anchor="middle" font-size="15" font-weight="700">${mSel} g dry sand</text>${thermo(560,195,110,temp,30,46,heatCol(temp))}`;}
-let mTimer=null;
-$('mGo').onclick=()=>{if(mTimer)return;tryOnce('mass');mT=0;mTimer=setInterval(()=>{mT=Math.min(60,mT+(reduce?60:1.5));drawM(true);if(mT>=60){clearInterval(mTimer);mTimer=null;drawM(false);mDoneSet.add(mSel);mRows();}},reduce?10:60);};
-function mRows(){$('mRows').innerHTML=MASSES.filter(m=>mDoneSet.has(m)).map(m=>{const d=600/(m*C_SAND);return `<tr><td>${m}</td><td class="n">600</td><td class="n">+${d.toFixed(1)}</td><td class="n">${(600/d).toFixed(1)}</td></tr>`;}).join('');
- if(mDoneSet.size>=2&&!mQuizBuilt){mQuizBuilt=true;$('mQuiz').hidden=false;$('mScoreLine').hidden=false;buildQuiz($('mQuiz'),[
-  {q:'The mass of sand doubles (100 g → 200 g). With the same heat, Δt…',o:['doubles','halves','stays the same'],a:1,why:'Twice the sand shares the same heat, so each gram warms half as much.'},
-  {q:'Does the specific heat (c) of sand change when there is more sand?',o:['Yes, it gets bigger','No, it stays 0.83 J/g·°C','Yes, it gets smaller'],a:1,why:'c is per gram, so it does not depend on the amount: it is an intensive property.'},
-  {q:'What is the heat capacity (C = mc) of 200 g of sand?',o:['166 J/°C','0.83 J/°C','241 J/°C'],a:0,why:'C = 200 g × 0.83 J/g·°C = 166 J/°C. C depends on the amount: it is an extensive property.'}],$('mScore'),'mass');}}
-track('race','Beach race (run + 2 questions)',3,'points');track('findc','Find c',2,'correct');track('mass','More sand? (3 questions)',3,'best score');
-setupResults();setupTabs();drawScene();rows();drawM();
+// ---- flip-book: c (specific heat) vs C (heat capacity)
+const AMTS={10:'a spoon',100:'a tray',1000:'a bucket'};
+let pg=0,vSel=100,vSeen=new Set([100]),vAns={},vScore=0;
+const fmtC=v=>v<10?v.toFixed(1):v.toFixed(0);
+function heap(cx,base,w,h){return `<path d="M${cx-w/2} ${base} Q${cx} ${base-2*h} ${cx+w/2} ${base} Z" fill="#E9CF97" stroke="var(--ink)" stroke-width="3"/>`;}
+function pile(m){const w={10:70,100:170,1000:360}[m],h={10:20,100:48,1000:92}[m];
+ return `<svg viewBox="110 0 420 150" role="img" aria-label="${m} g of sand">${heap(320,124,w,h)}<line x1="120" x2="520" y1="124" y2="124" stroke="var(--ink)" stroke-width="3"/><text x="320" y="148" text-anchor="middle" font-size="19" font-weight="700">${m} g of sand (${AMTS[m]})</text></svg>`;}
+const VQ={
+ q1:{q:'You changed the amount of sand. Which one changed?',o:['c (specific heat)','C (heat capacity)','neither of them'],a:1,why:'C (heat capacity) grew with the sand. c (specific heat) stayed 0.83 J/g·°C, because it is always for just 1 g.'},
+ q2:{q:'c (specific heat) is…',o:['intensive','extensive'],a:0,why:'It does not depend on the amount: 0.83 J/g·°C for a spoon or a bucket.'},
+ q3:{q:'C (heat capacity) is…',o:['intensive','extensive'],a:1,why:'It depends on the amount: more sand → bigger C (heat capacity).'}};
+function askHTML(id){const q=VQ[id],r=vAns[id];
+ return `<div class="ask" data-q="${id}"><b>${q.q}</b><div class="opts">${q.o.map((t,j)=>`<button type="button" data-j="${j}" class="${r?(j===q.a?'right':(j===r.pick?'wrong':'')):''}">${t}</button>`).join('')}</div>${r?`<p class="feedback ${r.ok?'ok':'bad'}">${r.ok?'Correct. ':'Not quite. '}${q.why}</p>`:''}</div>`;}
+const PAGES=[
+ ()=>({ready:true,html:`<h2>Meet the two</h2>
+  <svg viewBox="80 0 540 172" role="img" aria-label="One gram of sand next to a whole pile of sand">
+   <circle cx="170" cy="100" r="8" fill="#E9CF97" stroke="var(--ink)" stroke-width="2.5"/><line x1="110" x2="230" y1="110" y2="110" stroke="var(--ink)" stroke-width="3"/>
+   <text x="170" y="138" text-anchor="middle" font-size="18" font-weight="700">just 1 g</text><text x="170" y="160" text-anchor="middle" font-size="17">→ c (specific heat)</text>
+   ${heap(450,110,240,48)}<line x1="310" x2="590" y1="110" y2="110" stroke="var(--ink)" stroke-width="3"/>
+   <text x="450" y="138" text-anchor="middle" font-size="18" font-weight="700">the whole pile</text><text x="450" y="160" text-anchor="middle" font-size="17">→ C (heat capacity)</text></svg>
+  <div class="def"><b class="k">c (specific heat) · small c</b><span>Heat to warm <b>1 g</b> by 1 °C. Unit: <span class="num">J/g·°C</span></span></div>
+  <div class="def"><b class="k">C (heat capacity) · capital C</b><span>Heat to warm the <b>whole object</b> by 1 °C. Unit: <span class="num">J/°C</span></span></div>`}),
+ ()=>{const C=vSel*C_SAND,seen=vSeen.size>=2;return {ready:seen,html:`<h2>Add more sand</h2><p>Tap the amounts. Watch both numbers.</p>
+  <div class="chips">${Object.keys(AMTS).map(m=>`<button type="button" class="chip" data-amt="${m}" aria-pressed="${+m===vSel}">${m} g · ${AMTS[m]}</button>`).join('')}</div>
+  ${pile(vSel)}
+  <div class="grid2">
+   <div class="meter"><h3>c (specific heat)</h3><p class="sub">for <b>1 g</b>, by 1 °C</p><div><span class="big">0.83</span> <span class="unit">J/g·°C</span></div><div class="bar"><i style="width:30%"></i></div>${seen?'<span class="tag same">stays the same</span>':''}</div>
+   <div class="meter"><h3>C (heat capacity)</h3><p class="sub">for <b>all ${vSel} g</b>, by 1 °C</p><div><span class="big">${fmtC(C)}</span> <span class="unit">J/°C</span></div><div class="bar"><i style="width:${Math.max(2,C/830*100)}%"></i></div>${seen?'<span class="tag exo">changes</span>':''}<p class="model num">C = m × c = ${vSel} × 0.83 = ${fmtC(C)} J/°C</p></div>
+  </div>
+  <p class="feedback ${seen?'ok':'info'}">${seen?'Did you spot it? Press Next ▶':'Tap at least one more amount.'}</p>`};},
+ ()=>({ready:!!vAns.q1,html:`<h2>What changed?</h2>
+  <table class="res"><thead><tr><th>Sand (g)</th><th class="n">c (specific heat), J/g·°C</th><th class="n">C (heat capacity), J/°C</th></tr></thead><tbody>${[...vSeen].sort((x,y)=>x-y).map(m=>`<tr><td>${m}</td><td class="n">0.83</td><td class="n">${fmtC(m*C_SAND)}</td></tr>`).join('')}</tbody></table>
+  ${askHTML('q1')}`}),
+ ()=>({ready:!!(vAns.q2&&vAns.q3),html:`<h2>Two kinds of properties</h2>
+  <div class="grid2"><div class="def"><b class="k">Intensive</b><span>Does <b>NOT</b> depend on the amount. Example: temperature, density.</span></div>
+  <div class="def"><b class="k">Extensive</b><span><b>DOES</b> depend on the amount. Example: mass, volume.</span></div></div>
+  ${askHTML('q2')}${askHTML('q3')}`}),
+ ()=>({ready:true,html:`<h2>Remember</h2>
+  <table class="res"><thead><tr><th></th><th>For…</th><th>Unit</th><th>Type</th></tr></thead><tbody>
+   <tr><td><b>c (specific heat)</b></td><td>1 g</td><td class="num">J/g·°C</td><td>intensive</td></tr>
+   <tr><td><b>C (heat capacity)</b></td><td>whole object</td><td class="num">J/°C</td><td>extensive</td></tr></tbody></table>
+  <div class="eq">C (heat capacity) = m × c (specific heat)</div>
+  <p class="score">Score: ${vScore} / 3</p>
+  <div class="row"><button type="button" class="btn" id="goRes">★ See my results</button></div>`})];
+function renderPage(turn){const el=$('page'),P=PAGES[pg]();el.innerHTML=P.html;
+ if(turn){el.classList.remove('turn');if(!reduce){void el.offsetWidth;el.classList.add('turn');}const r=$('book').getBoundingClientRect();if(r.top<0)$('book').scrollIntoView({block:'start'});}
+ el.querySelectorAll('[data-amt]').forEach(b=>b.onclick=()=>{vSel=+b.dataset.amt;vSeen.add(vSel);renderPage(false);});
+ el.querySelectorAll('.ask button').forEach(b=>b.onclick=()=>{const id=b.closest('.ask').dataset.q;if(vAns[id])return;const j=+b.dataset.j;
+  if(!Object.keys(vAns).length)tryOnce('compare');vAns[id]={pick:j,ok:j===VQ[id].a};vScore=Object.values(vAns).filter(x=>x.ok).length;setScore('compare',vScore);renderPage(false);});
+ const go=el.querySelector('#goRes');if(go)go.onclick=()=>document.querySelector('nav.tabs button[data-tab="results"]').click();
+ $('pgNum').textContent=`Page ${pg+1} of ${PAGES.length}`;$('pgDots').innerHTML=PAGES.map((_,i)=>`<i class="${i<=pg?'on':''}"></i>`).join('');
+ $('pgBack').disabled=pg===0;$('pgNext').hidden=pg===PAGES.length-1;$('pgNext').disabled=!P.ready;}
+$('pgBack').onclick=()=>{if(pg>0){pg--;renderPage(true);}};
+$('pgNext').onclick=()=>{if(pg<PAGES.length-1&&PAGES[pg]().ready){pg++;renderPage(true);}};
+track('race','Beach race (run + 2 questions)',3,'points');track('compare','Specific heat vs heat capacity (3 questions)',3,'correct');
+setupResults();setupTabs();drawScene();rows();renderPage(false);
 </script>
 
 </html>
