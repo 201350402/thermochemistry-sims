@@ -114,95 +114,141 @@ nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;bor
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 <style>
+/* Landscape deck: a fixed 1280×720 slide scaled to fit the window, like PowerPoint.
+   Left column = the task, right column = the result. Phones held upright get a stacked fallback. */
 .dh-out{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
-/* Slides: one screen per step, like a slide deck. Progress strip on top, Back / Next at the bottom. */
-.progress{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
-.progress button{font:600 .78rem var(--f-body);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;display:grid;gap:6px;text-align:left;min-width:0}
+html.deck-mode{font-size:20px;overflow:hidden}
+html.deck-mode body{padding:0;margin:0;height:100vh;height:100dvh;overflow:hidden;font-size:1rem;display:grid;place-items:center}
+html.deck-mode .deck{width:1280px;height:720px;position:fixed;left:50%;top:50%;transform-origin:center center}
+.deck{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 6px 30px rgba(20,34,53,.12);
+  display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;position:relative}
+.bar{display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;padding:18px 32px 14px;border-bottom:1px solid var(--line)}
+.bar .t{font-weight:700;font-size:1.05rem;line-height:1.1}
+.bar .t small{display:block;font-weight:500;color:var(--muted);font-size:.7rem;margin-top:2px}
+.progress{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.progress button{font:600 .66rem var(--f-body);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;display:grid;gap:5px;text-align:left;min-width:0}
 .progress button::before{content:"";display:block;height:6px;border-radius:999px;background:var(--line)}
-.progress button.seen::before{background:var(--accent);opacity:.45}
+.progress button.seen::before{background:var(--accent);opacity:.4}
 .progress button.ok::before{background:var(--ok)}
 .progress button[aria-current="step"]{color:var(--ink)}
 .progress button[aria-current="step"]::before{background:var(--accent);opacity:1}
-.progress button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slide{min-height:min(68vh,600px);align-content:start}
-.slide-head{display:grid;gap:4px}
-.slide-head h2{font-size:clamp(1.25rem,3vw,1.55rem);margin:0}
-.kicker{font:700 .8rem var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
-.rule{border-left:4px solid var(--accent);background:var(--soft);border-radius:0 10px 10px 0;padding:10px 14px;margin:0}
-.job{font-size:1.05rem;margin:0}
+.progress button span{overflow:hidden;white-space:nowrap}
+.badge{font-size:.62rem}
+.slide{display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:20px 32px;min-height:0;overflow:hidden}
+.slides{min-height:0;display:grid}
+.col{display:grid;gap:12px;align-content:start;min-width:0}
+.kicker{font:700 .66rem var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.slide h2{font-size:1.45rem;margin:2px 0 0;line-height:1.15}
+.rule{border-left:5px solid var(--accent);background:var(--soft);border-radius:0 12px 12px 0;padding:10px 14px;margin:0;font-size:.85rem}
+.job{font-size:.85rem;margin:0}
 .job b{color:var(--accent)}
-.lab-label{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
-.stage{display:grid;gap:6px}
-.stepnum{display:inline-grid;place-items:center;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 .85rem var(--f-num);flex:none}
-.phase{display:flex;gap:10px;align-items:flex-start}
-.phase > div{display:grid;gap:8px;min-width:0;flex:1}
-.phase.locked{opacity:.45}
-.predict{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.predict input{max-width:150px}
-.result{display:grid;gap:10px}
-.result .eq{transition:background .4s}
-.result .eq.flash{background:var(--ok-soft)}
-.diagram{max-width:340px}
-.trace{margin:0;padding-left:1.2em;display:grid;gap:4px}
-.trace li{font-family:var(--f-num);font-size:.92rem}
-.deck-nav{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.deck-nav .count{font-family:var(--f-num);color:var(--muted);font-size:.9rem}
-.intro-list{margin:0;padding-left:1.2em;display:grid;gap:6px}
-.sym{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:.95rem}
+.lab-label{font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:0 0 -6px}
+.slide .eq{font-size:.82rem;white-space:normal;line-height:1.6;padding:9px 12px}
+.slide .big{font-size:1.4rem}
+.phase{display:flex;gap:12px;align-items:flex-start;transition:opacity .2s}
+.phase > div{display:grid;gap:7px;min-width:0;flex:1;font-size:.85rem}
+.phase.locked{opacity:.4}
+.stepnum{display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 .7rem var(--f-num);flex:none}
+.predict{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.predict input{font-size:.9rem;max-width:170px}
+.hint{font-size:.66rem;color:var(--muted)}
+.slide .btn{font-size:.8rem;padding:9px 16px}
+.panel{border:2px dashed var(--line);border-radius:16px;padding:16px;display:grid;gap:10px;align-content:start;min-height:100%}
+.panel.on{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--soft) 45%,transparent)}
+.panel .empty{color:var(--muted);font-size:.85rem;margin:auto;text-align:center;max-width:26ch}
+.res-row{display:grid;grid-template-columns:1fr 290px;gap:12px;align-items:center}
+.res-row .left{display:grid;gap:8px;align-content:center}
+.trace{margin:0;padding-left:1.1em;display:grid;gap:2px;font-family:var(--f-num);font-size:.62rem}
+.slide .feedback{font-size:.78rem;padding:10px 12px}
+.slide .eq.flash{animation:fl .8s ease}
+@keyframes fl{from{background:var(--ok-soft)}to{background:var(--soft)}}
+.intro-list{margin:0;padding-left:1.2em;display:grid;gap:6px;font-size:.85rem}
+.sym{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:0;font-size:.8rem}
 .sym dt{font-family:var(--f-num);font-weight:700;color:var(--accent)}
 .sym dd{margin:0}
-.slide .eq{white-space:normal;line-height:1.7}
-@media (max-width:560px){.progress{gap:4px}.progress button{font-size:.62rem}.progress button span{text-overflow:clip}.slide{min-height:auto}.slide .eq{font-size:.92rem}}
+.box{background:var(--soft);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.box h3{font-size:.85rem;margin:0}
+.slide .how{font-size:.8rem}
+.slide .who{gap:12px}
+.slide .who input{font-size:.85rem}
+.slide .field{font-size:.8rem}
+.slide .rc{font-size:14px;max-width:100%;padding:14px 16px;gap:10px}
+.slide .rc-lab{font-size:19px}.slide .rc-sub,.slide .rc-total span{font-size:12px}.slide .rc-total b{font-size:24px}
+.slide .rc .star{font-size:24px}.slide .rc .st{font-size:19px}
+.slide .rc-who{padding:8px 10px}.slide .rc-who span{font-size:10px}.slide .rc-who b{font-size:13px}
+.slide .rc table{font-size:13px}.slide .rc th{font-size:10px}.slide .rc td{padding:5px 6px}.slide .rc td small{font-size:11px}
+.slide .rc-msg{font-size:13px}.slide .rc-foot{font-size:11px;padding-top:8px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 32px 16px;border-top:1px solid var(--line)}
+.foot .count{font-family:var(--f-num);color:var(--muted);font-size:.7rem}
+.foot .src{font-size:.55rem;color:var(--muted);text-align:center}
+.foot .btn{font-size:.8rem;padding:9px 18px;min-width:120px}
+.rotate{display:none}
+/* phone held upright: stack instead of shrinking the slide to an unreadable size */
+html:not(.deck-mode) body{padding:12px}
+html:not(.deck-mode) .deck{width:100%;max-width:640px;margin:0 auto}
+html:not(.deck-mode) .bar{grid-template-columns:1fr;gap:10px;padding:14px 16px}
+html:not(.deck-mode) .slide{grid-template-columns:1fr;padding:16px;gap:18px}
+html:not(.deck-mode) .res-row{grid-template-columns:1fr}
+html:not(.deck-mode) .foot{padding:12px 16px}
+html:not(.deck-mode) .foot .src{display:none}
+html:not(.deck-mode) .rotate{display:block;font-size:.8rem;color:var(--muted);text-align:center;margin:0 0 10px}
+html:not(.deck-mode) .progress button{font-size:.6rem}
 </style>
-<div class="wrap">
-  <header class="top">
-    <div><h1>Thermochemical Equation Lab</h1><p>Change one equation step by step and watch ΔH follow the rules.</p></div>
+<p class="rotate">Tip: turn your phone sideways for the slide view.</p>
+<div class="deck" id="deck">
+  <div class="bar">
+    <div class="t"><h1 style="font:inherit;margin:0">Thermochemical Equation Lab</h1><small>One equation · watch ΔH follow the rules</small></div>
+    <nav class="progress" id="progress" aria-label="Lab steps"></nav>
     <span class="badge">Chapter 6.4 · Lesson 2</span>
-  </header>
+  </div>
 
-  <nav class="progress" id="progress" aria-label="Lab steps"></nav>
-
+  <div class="slides">
   <!-- Slide 1: the one example -->
-  <section class="card slide" data-name="Start" id="s-start">
-    <div class="slide-head"><span class="kicker">Start</span><h2>Meet the equation</h2></div>
-    <p class="job">You will use <b>one equation</b> for the whole lab: burning methane gas.</p>
-    <div class="stage">
+  <section class="slide" data-name="Start" id="s-start">
+    <div class="col">
+      <div><div class="kicker">Start</div><h2>Meet the equation</h2></div>
+      <p class="job">You will use <b>one equation</b> for the whole lab: burning methane gas.</p>
       <p class="lab-label">Starting equation</p>
       <div class="eq" id="baseEq"></div>
       <div class="dh-out"><span>ΔH =</span><span class="big num" id="baseDh"></span><span class="tag exo">EXOTHERMIC</span></div>
+      <p class="rule">ΔH is <b>negative</b>, so heat is <b>released</b>. Burning 1 mol of CH₄ releases 890.4 kJ.</p>
+      <div style="max-width:300px" id="baseDia"></div>
     </div>
-    <p class="rule">ΔH is <b>negative</b>, so heat is <b>released</b>. Burning 1 mol of CH₄ releases 890.4 kJ.</p>
-    <div class="grid2">
-      <div><h3>On every screen</h3>
-        <ol class="intro-list"><li><b>Predict</b> the new ΔH. Type it in.</li><li><b>Press</b> the button to change the equation.</li><li><b>Check</b> if your ΔH was right.</li></ol></div>
-      <div><h3>Symbol key</h3>
+    <div class="col">
+      <div class="box"><h3>On every screen</h3>
+        <ol class="intro-list"><li><b>Predict</b> the new ΔH. Type it in.</li><li><b>Press</b> the button to change the equation.</li><li><b>Check</b> your answer on the right side.</li></ol></div>
+      <div class="box"><h3>Symbol key</h3>
         <dl class="sym"><dt>ΔH</dt><dd>enthalpy change, in kJ</dd><dt>−</dt><dd>heat released (exothermic)</dd><dt>+</dt><dd>heat absorbed (endothermic)</dd><dt>2, ½</dt><dd>coefficients: the big numbers in front of formulas</dd><dt>(g) (l)</dt><dd>gas, liquid</dd></dl></div>
+      <div class="box"><h3>Your 4 steps</h3>
+        <ol class="intro-list"><li>Multiply × 2</li><li>Reverse ⇄</li><li>Halve (× ½)</li><li>Challenge: reverse, then × 2</li></ol></div>
     </div>
   </section>
 
-  <section class="card slide" data-step="mult" data-name="× 2" hidden></section>
-  <section class="card slide" data-step="rev" data-name="Reverse" hidden></section>
-  <section class="card slide" data-step="half" data-name="½" hidden></section>
-  <section class="card slide" data-step="chal" data-name="Challenge" hidden></section>
+  <section class="slide" data-step="mult" data-name="× 2" hidden></section>
+  <section class="slide" data-step="rev" data-name="Reverse" hidden></section>
+  <section class="slide" data-step="half" data-name="½" hidden></section>
+  <section class="slide" data-step="chal" data-name="Challenge" hidden></section>
 
   <!-- Last slide: results card for Toddle -->
-  <section class="card slide" data-name="Results" id="s-results" hidden>
-    <div class="slide-head"><span class="kicker">Finish</span><h2>★ My results</h2></div>
-    <div class="how"><ol>
-      <li>Finish all four steps first. Your stars and tries are counted for you.</li>
-      <li>Type your <b>name</b> and <b>class</b>.</li>
-      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
-    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
-      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
-    <div id="rCard"></div>
+  <section class="slide" data-name="Results" id="s-results" hidden>
+    <div class="col">
+      <div><div class="kicker">Finish</div><h2>★ My results</h2></div>
+      <div class="how"><ol>
+        <li>Finish all four steps first. Your stars and tries are counted for you.</li>
+        <li>Type your <b>name</b> and <b>class</b>.</li>
+        <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+      <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+        <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    </div>
+    <div class="col"><div id="rCard"></div></div>
   </section>
+  </div>
 
-  <div class="deck-nav">
+  <div class="foot">
     <button type="button" class="btn ghost" id="prev">← Back</button>
-    <span class="count" id="count"></span>
+    <div style="display:grid;gap:2px;justify-items:center"><span class="count" id="count"></span><span class="src">Values from Chemistry, Ch. 6.4 (pp. 243–246) · Grade 11 Chemistry · Madar International School</span></div>
     <button type="button" class="btn" id="next">Next →</button>
   </div>
-  <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 243–246). Grade 11 Chemistry · Madar International School.</footer>
 </div>
 <script>
 // subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
@@ -258,7 +304,7 @@ function setupResults(){
 }
 function renderResults(){
   const box=document.getElementById('rCard');if(!box)return;
-  const lab=document.querySelector('header.top h1').textContent,sub=document.querySelector('header.top .badge').textContent;
+  const lab=document.querySelector('.bar h1').textContent,sub=document.querySelector('.bar .badge').textContent;
   const name=(document.getElementById('rName').value||'').trim(),cls=(document.getElementById('rClass').value||'').trim();
   const d=new Date(),date=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   let tot=0,max=0,tries=0;
@@ -332,21 +378,27 @@ const order=['mult','rev','half','chal'];
 
 function buildStep(sec,key){
   const S=STEPS[key];
-  sec.innerHTML=`<div class="slide-head"><span class="kicker">${S.kicker}</span><h2>${S.title}</h2></div>
-   <p class="rule">${S.rule}</p>
-   <div class="stage"><p class="lab-label">Starting equation</p><div class="eq">${eqOf(START)}</div>
-     <div class="dh-out"><span>ΔH =</span><span class="big num">${dhFmt(dhOf(START))}</span></div></div>
-   <p class="job">${S.job}</p>
-   <div class="phase" data-ph="1"><span class="stepnum">1</span><div><b>Predict.</b> What will the new ΔH be?
-     <div class="predict"><label class="field" for="p-${key}" style="grid-template-columns:auto 1fr;align-items:center;gap:8px">ΔH (kJ) = <input type="number" step="any" inputmode="decimal" id="p-${key}" placeholder="e.g. −100"></label></div>
-     <small class="keybox">Type a minus sign for heat released.</small></div></div>
-   <div class="phase locked" data-ph="2"><span class="stepnum">2</span><div><b>Press${S.ops.length>1?' both buttons':' the button'}.</b>
-     <div class="row ops">${S.ops.map(o=>`<button type="button" class="btn" data-op="${o}" disabled>${OPS[o].label}</button>`).join('')}</div></div></div>
-   <div class="phase locked" data-ph="3"><span class="stepnum">3</span><div><b>Check.</b>
-     <div class="result" hidden><div class="eq" data-r="eq"></div>
-       <div class="dh-out"><span>ΔH =</span><span class="big num" data-r="dh"></span><span data-r="tag"></span></div>
-       <ol class="trace" data-r="trace"></ol>
-       <div class="diagram" data-r="dia"></div>
+  sec.innerHTML=`<div class="col">
+     <div><div class="kicker">${S.kicker}</div><h2>${S.title}</h2></div>
+     <p class="rule">${S.rule}</p>
+     <p class="lab-label">Starting equation</p><div class="eq">${eqOf(START)}</div>
+     <div class="dh-out"><span>ΔH =</span><span class="big num">${dhFmt(dhOf(START))}</span></div>
+     <p class="job">${S.job}</p>
+     <div class="phase" data-ph="1"><span class="stepnum">1</span><div><b>Predict the new ΔH.</b>
+       <div class="predict"><label class="field" for="p-${key}" style="grid-template-columns:auto 1fr;align-items:center;gap:8px">ΔH (kJ) = <input type="number" step="any" inputmode="decimal" id="p-${key}" placeholder="e.g. −100"></label></div>
+       <span class="hint">Type a minus sign for heat released.</span></div></div>
+     <div class="phase locked" data-ph="2"><span class="stepnum">2</span><div><b>Press${S.ops.length>1?' both buttons':' the button'}.</b>
+       <div class="row ops">${S.ops.map(o=>`<button type="button" class="btn" data-op="${o}" disabled>${OPS[o].label}</button>`).join('')}</div></div></div>
+   </div>
+   <div class="col"><div class="panel" data-ph="3">
+     <p class="empty" data-r="empty">③ Your new equation and ΔH appear here after you press ${S.ops.length>1?'both buttons':'the button'}.</p>
+     <div class="result" hidden style="display:grid;gap:10px">
+       <div class="kicker">③ Check</div>
+       <p class="lab-label">New equation</p><div class="eq" data-r="eq"></div>
+       <div class="res-row"><div class="left">
+         <div class="dh-out"><span>ΔH =</span><span class="big num" data-r="dh"></span></div><span data-r="tag"></span>
+         <ol class="trace" data-r="trace"></ol></div>
+         <div data-r="dia"></div></div>
        <p class="feedback" data-r="fb"></p>
        <div class="row"><button type="button" class="btn ghost" data-r="again" hidden>Try again</button></div></div></div></div>`;
   track(key,S.title,1,'correct');
@@ -362,7 +414,7 @@ function buildStep(sec,key){
 function reset(sec,key){
   SS[key]={s:{...START},pressed:[],locked:false,done:SS[key]?.done||false};
   const inp=sec.querySelector('input');inp.value='';inp.disabled=false;
-  sec.querySelector('[data-ph="2"]').classList.add('locked');sec.querySelector('[data-ph="3"]').classList.add('locked');
+  sec.querySelector('[data-ph="2"]').classList.add('locked');sec.querySelector('.panel').classList.remove('on');sec.querySelector('[data-r="empty"]').hidden=false;
   sec.querySelectorAll('[data-op]').forEach(b=>{b.disabled=true;b.classList.remove('ghost');});
   sec.querySelector('.result').hidden=true;
 }
@@ -373,7 +425,7 @@ function press(sec,key,btn){
   st.s=OPS[op].apply(st.s);st.pressed.push(op);
   btn.disabled=true;btn.classList.add('ghost');
   const v=dhOf(st.s),res=sec.querySelector('.result');
-  sec.querySelector('[data-ph="3"]').classList.remove('locked');res.hidden=false;
+  sec.querySelector('.panel').classList.add('on');sec.querySelector('[data-r="empty"]').hidden=true;res.hidden=false;
   const eq=res.querySelector('[data-r="eq"]');eq.textContent=eqOf(st.s);eq.classList.remove('flash');void eq.offsetWidth;eq.classList.add('flash');
   res.querySelector('[data-r="dh"]').textContent=dhFmt(v);
   res.querySelector('[data-r="tag"]').innerHTML=tagOf(v);
@@ -415,12 +467,20 @@ function go(i){
   if(slides[cur].id==='s-results')renderResults();
   try{history.replaceState(null,'','#'+(cur+1));}catch(e){}
   paintProgress();
-  window.scrollTo({top:0,behavior:'instant'});
+  if(!document.documentElement.classList.contains('deck-mode'))window.scrollTo({top:0,behavior:'instant'});
 }
 document.getElementById('prev').addEventListener('click',()=>go(cur-1));
 document.getElementById('next').addEventListener('click',()=>go(cur+1));
 document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='ArrowRight')go(cur+1);if(e.key==='ArrowLeft')go(cur-1);});
 
+// scale the fixed 1280×720 slide to the window; phones held upright get the stacked layout
+const deck=document.getElementById('deck');
+function fit(){
+  const w=innerWidth,h=innerHeight,upright=w<720&&h>w;
+  document.documentElement.classList.toggle('deck-mode',!upright);
+  deck.style.transform=upright?'':`translate(-50%,-50%) scale(${Math.min(w/1280,h/720)*0.97})`;
+}
+addEventListener('resize',fit);addEventListener('orientationchange',fit);fit();
 // results slide wiring (card markup comes from renderResults)
 function setupResultsSlide(){
   const n=document.getElementById('rName'),c=document.getElementById('rClass');
@@ -431,6 +491,7 @@ function setupResultsSlide(){
 
 document.getElementById('baseEq').textContent=eqOf(START);
 document.getElementById('baseDh').textContent=dhFmt(dhOf(START));
+document.getElementById('baseDia').innerHTML=diagram(dhOf(START));
 slides.forEach(s=>{if(s.dataset.step)buildStep(s,s.dataset.step);});
 setupResultsSlide();
 const h=parseInt((location.hash||'').slice(1),10);
