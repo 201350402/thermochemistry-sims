@@ -156,13 +156,19 @@ html.deck-mode .deck{width:1280px;height:720px;position:fixed;left:50%;top:50%;t
 .panel{border:2px dashed var(--line);border-radius:16px;padding:16px;display:grid;gap:10px;align-content:start;min-height:100%}
 .panel.on{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--soft) 45%,transparent)}
 .panel .empty{color:var(--muted);font-size:.85rem;margin:auto;text-align:center;max-width:26ch}
-.res-row{display:grid;grid-template-columns:1fr 290px;gap:12px;align-items:center}
-.res-row .left{display:grid;gap:8px;align-content:center}
-.trace{margin:0;padding-left:1.1em;display:grid;gap:2px;font-family:var(--f-num);font-size:.62rem}
+.chain{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.val{font:700 .85rem var(--f-num);padding:6px 8px;border-radius:12px;border:2px solid;white-space:nowrap}
+.val.exo{color:var(--exo);background:var(--exo-soft);border-color:var(--exo)}
+.val.endo{color:var(--endo);background:var(--endo-soft);border-color:var(--endo)}
+.val.new{box-shadow:0 0 0 4px color-mix(in srgb,currentColor 18%,transparent)}
+.op{display:grid;justify-items:center;gap:0;line-height:1.1}
+.op b{font:700 .8rem var(--f-num);color:var(--accent)}
+.op i{font-style:normal;font-size:1.4rem;color:var(--ink)}
+.op small{font-size:.55rem;color:var(--muted);white-space:nowrap}
 .slide .feedback{font-size:.78rem;padding:10px 12px}
 .slide .eq.flash{animation:fl .8s ease}
 @keyframes fl{from{background:var(--ok-soft)}to{background:var(--soft)}}
-.intro-list{margin:0;padding-left:1.2em;display:grid;gap:6px;font-size:.85rem}
+.intro-list{margin:0;padding-left:1.2em;display:grid;gap:3px;font-size:.85rem}
 .sym{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:0;font-size:.8rem}
 .sym dt{font-family:var(--f-num);font-weight:700;color:var(--accent)}
 .sym dd{margin:0}
@@ -188,9 +194,9 @@ html:not(.deck-mode) body{padding:12px}
 html:not(.deck-mode) .deck{width:100%;max-width:640px;margin:0 auto}
 html:not(.deck-mode) .bar{grid-template-columns:1fr;gap:10px;padding:14px 16px}
 html:not(.deck-mode) .slide{grid-template-columns:1fr;padding:16px;gap:18px}
-html:not(.deck-mode) .res-row{grid-template-columns:1fr}
 html:not(.deck-mode) .foot{padding:12px 16px}
 html:not(.deck-mode) .foot .src{display:none}
+html:not(.deck-mode) .chain{flex-wrap:wrap}
 html:not(.deck-mode) .rotate{display:block;font-size:.8rem;color:var(--muted);text-align:center;margin:0 0 10px}
 html:not(.deck-mode) .progress button{font-size:.6rem}
 </style>
@@ -212,7 +218,6 @@ html:not(.deck-mode) .progress button{font-size:.6rem}
       <div class="eq" id="baseEq"></div>
       <div class="dh-out"><span>ΔH =</span><span class="big num" id="baseDh"></span><span class="tag exo">EXOTHERMIC</span></div>
       <p class="rule">ΔH is <b>negative</b>, so heat is <b>released</b>. Burning 1 mol of CH₄ releases 890.4 kJ.</p>
-      <div style="max-width:300px" id="baseDia"></div>
     </div>
     <div class="col">
       <div class="box"><h3>On every screen</h3>
@@ -255,25 +260,6 @@ html:not(.deck-mode) .progress button{font-size:.6rem}
 function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
 function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
 function sig(n,s=3){if(n===0)return '0';const d=Math.max(0,s-1-Math.floor(Math.log10(Math.abs(n))));return Math.abs(n).toFixed(Math.min(d,4));}
-// enthalpy diagram: Hr, Hp numbers (any scale) -> svg string
-function diagram(Hr,Hp,rLabel,pLabel,dHtext){
-  const W=340,H=230,top=34,bot=196;
-  const mn=Math.min(Hr,Hp),mx=Math.max(Hr,Hp),span=Math.max(mx-mn,1);
-  const y=(v)=>mx===mn? (top+bot)/2 : bot-(v-mn)/span*(bot-top);
-  const yr=y(Hr),yp=y(Hp),exo=Hp<Hr,flat=Hp===Hr,cls=exo?'exo':'endo';
-  const ax=210;
-  let arrow='';
-  if(!flat){const tip=yp+(exo?-2:2);arrow=`<line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip+(exo?-8:8)}"/>
-   <polygon class="head-${cls}" points="${ax-8},${tip+(exo?-12:12)} ${ax+8},${tip+(exo?-12:12)} ${ax},${tip}"/>
-   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dHtext}</text>`;}
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram">
-   <line class="axis" x1="28" y1="${H-10}" x2="28" y2="12"/><polygon points="22,18 34,18 28,6" fill="currentColor" style="fill:var(--ink)"/>
-   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
-   <line class="lvl" x1="48" y1="${yr}" x2="150" y2="${yr}"/><text x="48" y="${yr-10}" font-size="13">${rLabel}</text>
-   <line class="dash" x1="150" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
-   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${yp-10}" font-size="13" text-anchor="end">${pLabel}</text>
-   ${arrow}</svg>`;
-}
 // ---------- results tracking ----------
 // track(id,label,total,unit): register an activity. tryOnce(id): one attempt. setScore(id,n): best result so far.
 const RES={order:[],a:{}};
@@ -327,32 +313,17 @@ function renderResults(){
 
 // ---------- the one example ----------
 const BASE={R:[[1,'CH4(g)'],[2,'O2(g)']],P:[[1,'CO2(g)'],[2,'H2O(l)']],dH:-890.4};
-const MAXH=1780.8; // largest |ΔH| in the lab, sets the diagram scale
 function coef(c){if(c===1)return '';if(c===0.5)return '½';return String(c);}
 function eqOf(s){const sd=a=>a.map(([c,x])=>coef(c*s.f)+x).join(' + ');const L=sd(BASE.R),R=sd(BASE.P);return chem(s.rev?`${R} → ${L}`:`${L} → ${R}`);}
 function dhOf(s){return (s.rev?-1:1)*s.f*BASE.dH;}
 function dhFmt(v){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+' kJ';}
 function tagOf(v){return v<0?'<span class="tag exo">EXOTHERMIC</span>':'<span class="tag endo">ENDOTHERMIC</span>';}
-// enthalpy diagram on a fixed scale, so ×2 really looks twice as tall
-function diagram(v){
-  const W=340,H=230,mid=115,amp=88,yr=mid,yp=mid+(-v/MAXH)*amp*1.0,exo=v<0,cls=exo?'exo':'endo',ax=200;
-  const tip=yp,dir=exo?1:-1;
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram: products are ${exo?'lower':'higher'} than reactants">
-   <line class="axis" x1="28" y1="${H-8}" x2="28" y2="14"/><polygon points="22,20 34,20 28,8" style="fill:var(--ink)"/>
-   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
-   <line class="lvl" x1="46" y1="${yr}" x2="140" y2="${yr}"/><text x="46" y="${yr-10}" font-size="13">Reactants</text>
-   <line class="dash" x1="140" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
-   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${exo?yp+22:yp-10}" font-size="13" text-anchor="end">Products</text>
-   <line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip-dir*10}"/>
-   <polygon class="head-${cls}" points="${ax-8},${tip-dir*12} ${ax+8},${tip-dir*12} ${ax},${tip}"/>
-   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dhFmt(v)}</text></svg>`;
-}
 
 // ---------- the four practice steps ----------
 const OPS={
-  x2:{label:'Multiply × 2',apply:s=>({...s,f:s.f*2}),log:'× 2 → ΔH × 2'},
-  d2:{label:'Divide ÷ 2 (× ½)',apply:s=>({...s,f:s.f/2}),log:'÷ 2 → ΔH ÷ 2'},
-  rev:{label:'Reverse ⇄',apply:s=>({...s,rev:!s.rev}),log:'reverse → change the sign'},
+  x2:{label:'Multiply × 2',sym:'× 2',apply:s=>({...s,f:s.f*2}),note:'number × 2'},
+  d2:{label:'Divide ÷ 2 (× ½)',sym:'× ½',apply:s=>({...s,f:s.f/2}),note:'number ÷ 2'},
+  rev:{label:'Reverse ⇄',sym:'reverse',apply:s=>({...s,rev:!s.rev}),note:'sign flips'},
 };
 const STEPS={
   mult:{kicker:'Step 1 · Rule: multiply',title:'Multiply the equation by 2',ops:['x2'],
@@ -395,10 +366,8 @@ function buildStep(sec,key){
      <div class="result" hidden style="display:grid;gap:10px">
        <div class="kicker">③ Check</div>
        <p class="lab-label">New equation</p><div class="eq" data-r="eq"></div>
-       <div class="res-row"><div class="left">
-         <div class="dh-out"><span>ΔH =</span><span class="big num" data-r="dh"></span></div><span data-r="tag"></span>
-         <ol class="trace" data-r="trace"></ol></div>
-         <div data-r="dia"></div></div>
+       <p class="lab-label">What happened to ΔH</p><div class="chain" data-r="chain"></div>
+       <div class="dh-out"><span>New ΔH =</span><span class="big num" data-r="dh"></span><span data-r="tag"></span></div>
        <p class="feedback" data-r="fb"></p>
        <div class="row"><button type="button" class="btn ghost" data-r="again" hidden>Try again</button></div></div></div></div>`;
   track(key,S.title,1,'correct');
@@ -429,10 +398,10 @@ function press(sec,key,btn){
   const eq=res.querySelector('[data-r="eq"]');eq.textContent=eqOf(st.s);eq.classList.remove('flash');void eq.offsetWidth;eq.classList.add('flash');
   res.querySelector('[data-r="dh"]').textContent=dhFmt(v);
   res.querySelector('[data-r="tag"]').innerHTML=tagOf(v);
-  res.querySelector('[data-r="dia"]').innerHTML=diagram(v);
-  const tr=res.querySelector('[data-r="trace"]');
-  tr.hidden=S.ops.length<2;
-  let run={...START};tr.innerHTML=st.pressed.map(o=>{const before=dhFmt(dhOf(run));run=OPS[o].apply(run);return `<li>${OPS[o].label}: ${before} → ${dhFmt(dhOf(run))}</li>`;}).join('');
+  let run={...START};const box=x=>`<span class="val ${dhOf(x)<0?'exo':'endo'}">${dhFmt(dhOf(x))}</span>`;
+  let html=box(run);
+  st.pressed.forEach((o,i)=>{run=OPS[o].apply(run);html+=`<span class="op"><b>${OPS[o].sym}</b><i>⟶</i><small>${OPS[o].note}</small></span>`+box(run).replace('class="val','class="val'+(i===st.pressed.length-1?' new':''));});
+  res.querySelector('[data-r="chain"]').innerHTML=html;
   const fb=res.querySelector('[data-r="fb"]'),again=res.querySelector('[data-r="again"]');
   if(st.pressed.length<S.ops.length){fb.className='feedback info';fb.innerHTML='Good. Now press the other button.';again.hidden=true;return;}
   // all buttons pressed: check the prediction
@@ -491,7 +460,6 @@ function setupResultsSlide(){
 
 document.getElementById('baseEq').textContent=eqOf(START);
 document.getElementById('baseDh').textContent=dhFmt(dhOf(START));
-document.getElementById('baseDia').innerHTML=diagram(dhOf(START));
 slides.forEach(s=>{if(s.dataset.step)buildStep(s,s.dataset.step);});
 setupResultsSlide();
 const h=parseInt((location.hash||'').slice(1),10);
