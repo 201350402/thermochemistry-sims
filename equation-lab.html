@@ -73,7 +73,6 @@ svg .head-exo{fill:var(--exo)} svg .head-endo{fill:var(--endo)}
 svg .lbl-exo{fill:var(--exo);font-weight:700} svg .lbl-endo{fill:var(--endo);font-weight:700}
 .keybox{font-size:.9rem;color:var(--muted)}
 .keybox b{color:var(--ink)}
-.quiz{display:grid;gap:14px}
 .q{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
 .q p{margin:0}
 .opts{display:grid;gap:8px}
@@ -114,78 +113,98 @@ nav.tabs button[data-tab="results"][aria-selected="true"]{background:#B7791F;bor
 @media (max-width:420px){.rc{padding:14px}.rc-who{grid-template-columns:1fr 1fr}.rc-who div:last-child{grid-column:1 / -1}.rc table{font-size:.85rem}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
-
 <style>
-.machine{display:grid;gap:12px}
 .dh-out{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
-.log{margin:0;padding-left:1.2em;display:grid;gap:4px;color:var(--muted)}
-.log li b{color:var(--ink)}
-.target{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.target .eq{padding:6px 10px;font-size:.92rem}
-.target .st{font-weight:700;color:var(--muted)}
-.target.done{border-color:var(--ok);background:var(--ok-soft)}
-.target.done .st{color:var(--ok)}
-.heatbar{height:22px;border-radius:999px;background:var(--soft);overflow:hidden;border:1px solid var(--line)}
-.heatbar div{height:100%;transition:width .6s ease}
-@media (max-width:560px){.target{grid-template-columns:1fr}}
+/* Slides: one screen per step, like a slide deck. Progress strip on top, Back / Next at the bottom. */
+.progress{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.progress button{font:600 .78rem var(--f-body);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;display:grid;gap:6px;text-align:left;min-width:0}
+.progress button::before{content:"";display:block;height:6px;border-radius:999px;background:var(--line)}
+.progress button.seen::before{background:var(--accent);opacity:.45}
+.progress button.ok::before{background:var(--ok)}
+.progress button[aria-current="step"]{color:var(--ink)}
+.progress button[aria-current="step"]::before{background:var(--accent);opacity:1}
+.progress button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slide{min-height:min(68vh,600px);align-content:start}
+.slide-head{display:grid;gap:4px}
+.slide-head h2{font-size:clamp(1.25rem,3vw,1.55rem);margin:0}
+.kicker{font:700 .8rem var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.rule{border-left:4px solid var(--accent);background:var(--soft);border-radius:0 10px 10px 0;padding:10px 14px;margin:0}
+.job{font-size:1.05rem;margin:0}
+.job b{color:var(--accent)}
+.lab-label{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
+.stage{display:grid;gap:6px}
+.stepnum{display:inline-grid;place-items:center;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 .85rem var(--f-num);flex:none}
+.phase{display:flex;gap:10px;align-items:flex-start}
+.phase > div{display:grid;gap:8px;min-width:0;flex:1}
+.phase.locked{opacity:.45}
+.predict{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.predict input{max-width:150px}
+.result{display:grid;gap:10px}
+.result .eq{transition:background .4s}
+.result .eq.flash{background:var(--ok-soft)}
+.diagram{max-width:340px}
+.trace{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.trace li{font-family:var(--f-num);font-size:.92rem}
+.deck-nav{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.deck-nav .count{font-family:var(--f-num);color:var(--muted);font-size:.9rem}
+.intro-list{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.sym{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:.95rem}
+.sym dt{font-family:var(--f-num);font-weight:700;color:var(--accent)}
+.sym dd{margin:0}
+.slide .eq{white-space:normal;line-height:1.7}
+@media (max-width:560px){.progress{gap:4px}.progress button{font-size:.62rem}.progress button span{text-overflow:clip}.slide{min-height:auto}.slide .eq{font-size:.92rem}}
 </style>
 <div class="wrap">
   <header class="top">
-    <div><h1>Thermochemical Equation Lab</h1><p>Change an equation and watch ΔH follow the rules.</p></div>
+    <div><h1>Thermochemical Equation Lab</h1><p>Change one equation step by step and watch ΔH follow the rules.</p></div>
     <span class="badge">Chapter 6.4 · Lesson 2</span>
   </header>
-  <nav class="tabs" aria-label="Activities">
-    <button type="button" data-tab="rules">1 · Rule machine</button>
-    <button type="button" data-tab="check">2 · Quick check</button>
-  </nav>
 
-  <section class="tab card" id="rules">
+  <nav class="progress" id="progress" aria-label="Lab steps"></nav>
+
+  <!-- Slide 1: the one example -->
+  <section class="card slide" data-name="Start" id="s-start">
+    <div class="slide-head"><span class="kicker">Start</span><h2>Meet the equation</h2></div>
+    <p class="job">You will use <b>one equation</b> for the whole lab: burning methane gas.</p>
+    <div class="stage">
+      <p class="lab-label">Starting equation</p>
+      <div class="eq" id="baseEq"></div>
+      <div class="dh-out"><span>ΔH =</span><span class="big num" id="baseDh"></span><span class="tag exo">EXOTHERMIC</span></div>
+    </div>
+    <p class="rule">ΔH is <b>negative</b>, so heat is <b>released</b>. Burning 1 mol of CH₄ releases 890.4 kJ.</p>
+    <div class="grid2">
+      <div><h3>On every screen</h3>
+        <ol class="intro-list"><li><b>Predict</b> the new ΔH. Type it in.</li><li><b>Press</b> the button to change the equation.</li><li><b>Check</b> if your ΔH was right.</li></ol></div>
+      <div><h3>Symbol key</h3>
+        <dl class="sym"><dt>ΔH</dt><dd>enthalpy change, in kJ</dd><dt>−</dt><dd>heat released (exothermic)</dd><dt>+</dt><dd>heat absorbed (endothermic)</dd><dt>2, ½</dt><dd>coefficients: the big numbers in front of formulas</dd><dt>(g) (l)</dt><dd>gas, liquid</dd></dl></div>
+    </div>
+  </section>
+
+  <section class="card slide" data-step="mult" data-name="× 2" hidden></section>
+  <section class="card slide" data-step="rev" data-name="Reverse" hidden></section>
+  <section class="card slide" data-step="half" data-name="½" hidden></section>
+  <section class="card slide" data-step="chal" data-name="Challenge" hidden></section>
+
+  <!-- Last slide: results card for Toddle -->
+  <section class="card slide" data-name="Results" id="s-results" hidden>
+    <div class="slide-head"><span class="kicker">Finish</span><h2>★ My results</h2></div>
     <div class="how"><ol>
-      <li>Choose a starting equation.</li>
-      <li>Press the buttons. Watch what happens to the equation and to ΔH.</li>
-      <li>Missions: predict ΔH first, then build the equation to test your answer.</li>
-    </ol></div>
-    <div class="row">
-      <button type="button" class="chip" id="bIce" aria-pressed="true">Melting ice (ΔH = +6.01 kJ)</button>
-      <button type="button" class="chip" id="bCh4" aria-pressed="false">Burning methane (ΔH = −890.4 kJ)</button>
-    </div>
-    <div class="machine">
-      <div class="eq" id="rEq"></div>
-      <div class="dh-out"><span>ΔH =</span><span class="big" id="rDh"></span><span id="rTag"></span></div>
-      <div class="row">
-        <button type="button" class="btn" id="x2">Multiply × 2</button>
-        <button type="button" class="btn" id="d2">Divide ÷ 2</button>
-        <button type="button" class="btn" id="rev">Reverse ⇄</button>
-        <button type="button" class="btn ghost" id="gas">Make water a gas</button>
-        <button type="button" class="btn ghost" id="reset">Reset</button>
-      </div>
-      <p class="feedback info" id="rFb">Press a button to change the equation.</p>
-    </div>
-    <h3>Missions: predict, then test</h3>
-    <div id="targets" style="display:grid;gap:8px"></div>
+      <li>Finish all four steps first. Your stars and tries are counted for you.</li>
+      <li>Type your <b>name</b> and <b>class</b>.</li>
+      <li>Take a <b>screenshot</b> of the card and post it on <b>Toddle</b>.</li></ol></div>
+    <div class="who"><label class="field" for="rName">Name<input type="text" id="rName" maxlength="40" autocomplete="name" placeholder="First and last name"></label>
+      <label class="field" for="rClass">Class<input type="text" id="rClass" maxlength="12" placeholder="e.g. 11A"></label></div>
+    <div id="rCard"></div>
   </section>
 
-  <section class="tab card" id="check" hidden>
-    <div class="row" style="justify-content:space-between"><h2>Quick check</h2><span>Score: <span class="score" id="qScore"></span></span></div>
-    <div class="quiz" id="quiz"></div>
-    <button type="button" class="btn ghost" id="qReset">Try again</button>
-  </section>
-
-  <div class="card keybox">
-    <div><b>The 3 rules:</b> ① write the states (s) (l) (g) (aq): they change ΔH · ② multiply the equation by n → multiply ΔH by n · ③ reverse the equation → same number, opposite sign</div>
-    <div><b>Symbol key:</b> <b>n</b> = moles (mol) · <b>kJ/mol</b> = kJ for each mole of reaction as written · <b>coefficient</b> = the big number in front of a formula</div>
+  <div class="deck-nav">
+    <button type="button" class="btn ghost" id="prev">← Back</button>
+    <span class="count" id="count"></span>
+    <button type="button" class="btn" id="next">Next →</button>
   </div>
   <footer class="note">Values from Chemistry, Chapter 6.4 (pp. 243–246). Grade 11 Chemistry · Madar International School.</footer>
 </div>
 <script>
-// tabs
-function setupTabs(){
-  const btns=[...document.querySelectorAll('nav.tabs button')];
-  const show=(id)=>{btns.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false'));
-    document.querySelectorAll('section.tab').forEach(s=>s.hidden=s.id!==id);};
-  btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
-  const h=(location.hash||'').slice(1); show(btns.some(b=>b.dataset.tab===h)?h:btns[0].dataset.tab);
-}
 // subscript digits after letters or ')' : CH4 -> CH₄ (coefficients untouched)
 function chem(s){const m='₀₁₂₃₄₅₆₇₈₉';return s.replace(/([A-Za-z\)])(\d+)/g,(x,a,d)=>a+[...d].map(c=>m[c]).join(''));}
 function fmt(n,dp=1){const s=Math.abs(n).toFixed(dp);return (n<0?'−':(n>0?'+':''))+s;}
@@ -259,99 +278,162 @@ function renderResults(){
     <div class="rc-foot"><span>Grade 11 Chemistry · Madar International School</span><span>★★★ = 80% or more</span></div>
   </div>`;
 }
-// multiple-choice quiz builder (tid = activity id for the results card)
-function buildQuiz(el,qs,scoreEl,tid='check'){
-  let score=0,done=0;
-  const upd=()=>{scoreEl.textContent=`${score} / ${qs.length}`;};
-  el.innerHTML='';
-  qs.forEach((q,i)=>{
-    const box=document.createElement('div');box.className='q';
-    box.innerHTML=`<div class="row"><b>Question ${i+1}</b></div><p>${chem(q.q)}</p><div class="opts"></div><p class="feedback" hidden></p>`;
-    const opts=box.querySelector('.opts'),fb=box.querySelector('.feedback');
-    q.o.forEach((t,j)=>{const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+j)+') '+chem(t);
-      b.addEventListener('click',()=>{if(box.dataset.done)return;box.dataset.done=1;if(done===0)tryOnce(tid);done++;
-        if(j===q.a){b.classList.add('right');score++;fb.className='feedback ok';fb.textContent='Correct. '+q.why;}
-        else{b.classList.add('wrong');opts.children[q.a].classList.add('right');fb.className='feedback bad';fb.textContent='Not quite. '+q.why;}
-        fb.hidden=false;upd();setScore(tid,score);});
-      opts.appendChild(b);});
-    el.appendChild(box);});
-  upd();
-}
-</script>
 
-<script>
-// ---------- rule machine ----------
-const BASES={
- ice:{R:[[1,'H2O(s)']],P:[[1,'H2O(l)']],dH:6.01,dp:2},
- ch4:{R:[[1,'CH4(g)'],[2,'O2(g)']],P:[[1,'CO2(g)'],[2,'H2O(l)']],dH:-890.4,dp:1},
-};
-let st={b:'ice',f:1,rev:false,gas:false};
+// ---------- the one example ----------
+const BASE={R:[[1,'CH4(g)'],[2,'O2(g)']],P:[[1,'CO2(g)'],[2,'H2O(l)']],dH:-890.4};
+const MAXH=1780.8; // largest |ΔH| in the lab, sets the diagram scale
 function coef(c){if(c===1)return '';if(c===0.5)return '½';return String(c);}
-function side(arr){return arr.map(([c,s])=>coef(c*st.f)+s).join(' + ');}
-function curDH(){const B=BASES[st.b];let base=B.dH;if(st.b==='ch4'&&st.gas)base=-802.4;return (st.rev?-1:1)*st.f*base;}
-function eqStr(s=st){const B=BASES[s.b];const fix=(a)=>a.map(([c,x])=>[c,(s.b==='ch4'&&s.gas&&x==='H2O(l)')?'H2O(g)':x]);
- const sd=(a)=>a.map(([c,x])=>coef(c*s.f)+x).join(' + ');
- const L=sd(fix(B.R)),Rr=sd(fix(B.P));return s.rev?`${Rr} → ${L}`:`${L} → ${Rr}`;}
-function dhFmt(v,dp){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(dp)+' kJ';}
-function render(msg){
- const B=BASES[st.b],v=curDH(),dp=B.dp;
- document.getElementById('rEq').textContent=chem(eqStr());
- document.getElementById('rDh').textContent=dhFmt(v,dp);
- document.getElementById('rTag').innerHTML=v<0?'<span class="tag exo">EXOTHERMIC</span>':'<span class="tag endo">ENDOTHERMIC</span>';
- document.getElementById('gas').disabled=st.b!=='ch4';
- if(msg){const fb=document.getElementById('rFb');fb.className='feedback info';fb.innerHTML=msg;}
- checkTargets();
-}
-document.getElementById('x2').onclick=()=>{if(st.f>=4){render('Maximum reached (× 4). Try another button.');return;}st.f*=2;render('<b>Rule 2:</b> you multiplied the equation by 2, so ΔH is multiplied by 2.');};
-document.getElementById('d2').onclick=()=>{if(st.f<=0.5){render('Minimum reached (½). Try another button.');return;}st.f/=2;render('<b>Rule 2:</b> you divided the equation by 2, so ΔH is divided by 2.');};
-document.getElementById('rev').onclick=()=>{st.rev=!st.rev;render('<b>Rule 3:</b> you reversed the equation. ΔH keeps the same number but changes its sign: exothermic ⇄ endothermic.');};
-document.getElementById('gas').onclick=()=>{st.gas=!st.gas;render(st.gas?'<b>Rule 1:</b> the water is now a gas. Less heat is released (−802.4 kJ instead of −890.4 kJ) because 88.0 kJ is needed to turn 2 mol of liquid water into vapour.':'<b>Rule 1:</b> the water is liquid again, so ΔH is −890.4 kJ per mole of methane.');};
-document.getElementById('reset').onclick=()=>{st={b:st.b,f:1,rev:false,gas:false};render('Back to the starting equation.');};
-function pick(b){st={b,f:1,rev:false,gas:false};document.getElementById('bIce').setAttribute('aria-pressed',b==='ice');document.getElementById('bCh4').setAttribute('aria-pressed',b==='ch4');render('New starting equation. Press a button to change it.');}
-document.getElementById('bIce').onclick=()=>pick('ice');document.getElementById('bCh4').onclick=()=>pick('ch4');
-
-const TARGETS=[
- {s:{b:'ice',f:2,rev:false,gas:false}},
- {s:{b:'ice',f:1,rev:true,gas:false}},
- {s:{b:'ch4',f:2,rev:true,gas:false}},
- {s:{b:'ch4',f:1,rev:false,gas:true}},
- {s:{b:'ch4',f:0.5,rev:false,gas:false}},
-];
-const tState=TARGETS.map(()=>({pred:null,done:false}));
-function tDH(s){const B=BASES[s.b];let base=B.dH;if(s.b==='ch4'&&s.gas)base=-802.4;return (s.rev?-1:1)*s.f*base;}
-function drawTargets(){
- document.getElementById('targets').innerHTML=TARGETS.map((t,i)=>`<div class="target ${tState[i].done?'done':''}" id="t${i}">
-   <span class="tag dok">${i+1}</span>
-   <div style="display:grid;gap:6px;min-width:0"><div class="eq">${chem(eqStr(t.s))}</div>
-   <div class="row"><label class="field" for="tp${i}" style="grid-template-columns:auto 1fr;align-items:center">My ΔH (kJ): <input type="number" step="any" id="tp${i}" style="max-width:130px" ${tState[i].pred!==null?`value="${tState[i].pred}"`:''}></label></div></div>
-   <span class="st" id="ts${i}">${tState[i].done?'✓ built and correct':'build it to test'}</span></div>`).join('');
- TARGETS.forEach((t,i)=>document.getElementById('tp'+i).addEventListener('input',e=>{tState[i].pred=e.target.value===''?null:+e.target.value;}));
-}
-function checkTargets(){
- TARGETS.forEach((t,i)=>{
-  const same=t.s.b===st.b&&t.s.f===st.f&&t.s.rev===st.rev&&(t.s.b!=='ch4'||t.s.gas===st.gas);
-  if(!same)return;
-  const el=document.getElementById('ts'+i),box=document.getElementById('t'+i),want=tDH(t.s),p=tState[i].pred;
-  if(p===null){el.textContent='Built! Now type your ΔH and build it again.';return;}
-  if(!tState[i].done)tryOnce('rules');
-  if(Math.abs(p-want)<=Math.max(0.05,Math.abs(want)*0.005)){tState[i].done=true;box.classList.add('done');el.textContent='✓ built and correct';}
-  else{el.textContent=`Built, but ΔH = ${dhFmt(want,BASES[t.s.b].dp)}. Check your rule.`;}
- });
- setScore('rules',tState.filter(x=>x.done).length);
+function eqOf(s){const sd=a=>a.map(([c,x])=>coef(c*s.f)+x).join(' + ');const L=sd(BASE.R),R=sd(BASE.P);return chem(s.rev?`${R} → ${L}`:`${L} → ${R}`);}
+function dhOf(s){return (s.rev?-1:1)*s.f*BASE.dH;}
+function dhFmt(v){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+' kJ';}
+function tagOf(v){return v<0?'<span class="tag exo">EXOTHERMIC</span>':'<span class="tag endo">ENDOTHERMIC</span>';}
+// enthalpy diagram on a fixed scale, so ×2 really looks twice as tall
+function diagram(v){
+  const W=340,H=230,mid=115,amp=88,yr=mid,yp=mid+(-v/MAXH)*amp*1.0,exo=v<0,cls=exo?'exo':'endo',ax=200;
+  const tip=yp,dir=exo?1:-1;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Enthalpy diagram: products are ${exo?'lower':'higher'} than reactants">
+   <line class="axis" x1="28" y1="${H-8}" x2="28" y2="14"/><polygon points="22,20 34,20 28,8" style="fill:var(--ink)"/>
+   <text x="14" y="${H/2}" font-size="13" transform="rotate(-90 14 ${H/2})" text-anchor="middle">Enthalpy, H</text>
+   <line class="lvl" x1="46" y1="${yr}" x2="140" y2="${yr}"/><text x="46" y="${yr-10}" font-size="13">Reactants</text>
+   <line class="dash" x1="140" y1="${yr}" x2="${ax+14}" y2="${yr}"/>
+   <line class="lvl" x1="${ax+14}" y1="${yp}" x2="${W-12}" y2="${yp}"/><text x="${W-12}" y="${exo?yp+22:yp-10}" font-size="13" text-anchor="end">Products</text>
+   <line class="arr-${cls}" x1="${ax}" y1="${yr}" x2="${ax}" y2="${tip-dir*10}"/>
+   <polygon class="head-${cls}" points="${ax-8},${tip-dir*12} ${ax+8},${tip-dir*12} ${ax},${tip}"/>
+   <text class="lbl-${cls}" x="${ax-12}" y="${(yr+yp)/2+5}" text-anchor="end" font-size="15">${dhFmt(v)}</text></svg>`;
 }
 
-const QS=[
- {dok:1,q:"You reverse a thermochemical equation. What happens to ΔH?",o:["It stays exactly the same","Same number, opposite sign","It doubles","It becomes zero"],a:1,why:"Rule 3: reversing changes the sign of ΔH."},
- {dok:1,q:"H2O(s) → H2O(l)  ΔH = +6.01 kJ. What is ΔH for 2H2O(s) → 2H2O(l)?",o:["+6.01 kJ","+3.01 kJ","+12.0 kJ","−12.0 kJ"],a:2,why:"Rule 2: × 2 → 2 × 6.01 = +12.0 kJ."},
- {dok:1,q:"Why must we write (s), (l), (g) in a thermochemical equation?",o:["To make it look neat","The state changes the value of ΔH","Only gases have enthalpy"],a:1,why:"Rule 1: e.g. −890.4 kJ with liquid water but −802.4 kJ with water vapour."},
- {dok:2,q:"CH4 + 2O2 → CO2 + 2H2O(l)  ΔH = −890.4 kJ. Heat released by 2.00 mol of CH4?",o:["445.2 kJ","890.4 kJ","1781 kJ","3562 kJ"],a:2,why:"2.00 mol × 890.4 kJ/mol = 1781 kJ released."},
- {dok:2,q:"2SO2 + O2 → 2SO3  ΔH = −198.2 kJ. What is ΔH for 1 mol of SO2?",o:["−198.2 kJ","−99.1 kJ","−396.4 kJ","+99.1 kJ"],a:1,why:"The equation has 2 mol SO2, so per mole: −198.2 ÷ 2 = −99.1 kJ."},
- {dok:3,q:"Why is less heat released when methane burns to make water VAPOUR instead of liquid water?",o:["Vapour has less mass","88.0 kJ is needed to turn the liquid water into vapour","Methane burns more slowly"],a:1,why:"2H2O(l) → 2H2O(g) needs +88.0 kJ, so −890.4 + 88.0 = −802.4 kJ."},
-];
-function quiz(){buildQuiz(document.getElementById('quiz'),QS,document.getElementById('qScore'));}
-document.getElementById('qReset').addEventListener('click',quiz);
-track('rules','Rule machine missions',5,'missions');track('check','Quick check',6,'best score');
-setupResults();setupTabs();drawTargets();render();quiz();
+// ---------- the four practice steps ----------
+const OPS={
+  x2:{label:'Multiply × 2',apply:s=>({...s,f:s.f*2}),log:'× 2 → ΔH × 2'},
+  d2:{label:'Divide ÷ 2 (× ½)',apply:s=>({...s,f:s.f/2}),log:'÷ 2 → ΔH ÷ 2'},
+  rev:{label:'Reverse ⇄',apply:s=>({...s,rev:!s.rev}),log:'reverse → change the sign'},
+};
+const STEPS={
+  mult:{kicker:'Step 1 · Rule: multiply',title:'Multiply the equation by 2',ops:['x2'],
+    rule:'<b>Rule:</b> multiply the equation by a number → multiply ΔH by the <b>same number</b>. The sign stays the same.',
+    job:'Burn <b>2 mol</b> of methane instead of 1. Every coefficient is multiplied by 2.',
+    why:'You doubled every coefficient, so ΔH doubles: 2 × (−890.4) = −1780.8 kJ. Still exothermic: twice the methane releases twice the heat.'},
+  rev:{kicker:'Step 2 · Rule: reverse',title:'Reverse the equation',ops:['rev'],
+    rule:'<b>Rule:</b> reverse the equation → <b>same number, opposite sign</b>. Exothermic becomes endothermic.',
+    job:'Turn the equation around: products become reactants, reactants become products.',
+    why:'Reversing keeps 890.4 but flips the sign: +890.4 kJ. Making methane from CO₂ and water would <b>absorb</b> the heat that burning releases.'},
+  half:{kicker:'Step 3 · Rule: multiply by ½',title:'Halve the equation (× ½)',ops:['d2'],
+    rule:'<b>Rule:</b> dividing by 2 is the same as multiplying by ½ → ΔH is <b>divided by 2</b>. The sign stays the same.',
+    job:'Burn only <b>½ mol</b> of methane. Every coefficient is divided by 2.',
+    why:'Half the methane releases half the heat: −890.4 ÷ 2 = −445.2 kJ. Still exothermic.'},
+  chal:{kicker:'Challenge · Two rules',title:'Reverse it, then multiply by 2',ops:['rev','x2'],
+    rule:'<b>Use both rules.</b> Do them one at a time: reverse (change the sign), then × 2 (double the number).',
+    job:'Press <b>both</b> buttons. You can press them in any order: the answer is the same.',
+    why:'Reverse: −890.4 → +890.4 kJ. Then × 2: +890.4 × 2 = +1780.8 kJ. Endothermic, and twice as much heat.'},
+};
+const START={f:1,rev:false};
+const SS={}; // per-step state
+const order=['mult','rev','half','chal'];
+
+function buildStep(sec,key){
+  const S=STEPS[key];
+  sec.innerHTML=`<div class="slide-head"><span class="kicker">${S.kicker}</span><h2>${S.title}</h2></div>
+   <p class="rule">${S.rule}</p>
+   <div class="stage"><p class="lab-label">Starting equation</p><div class="eq">${eqOf(START)}</div>
+     <div class="dh-out"><span>ΔH =</span><span class="big num">${dhFmt(dhOf(START))}</span></div></div>
+   <p class="job">${S.job}</p>
+   <div class="phase" data-ph="1"><span class="stepnum">1</span><div><b>Predict.</b> What will the new ΔH be?
+     <div class="predict"><label class="field" for="p-${key}" style="grid-template-columns:auto 1fr;align-items:center;gap:8px">ΔH (kJ) = <input type="number" step="any" inputmode="decimal" id="p-${key}" placeholder="e.g. −100"></label></div>
+     <small class="keybox">Type a minus sign for heat released.</small></div></div>
+   <div class="phase locked" data-ph="2"><span class="stepnum">2</span><div><b>Press${S.ops.length>1?' both buttons':' the button'}.</b>
+     <div class="row ops">${S.ops.map(o=>`<button type="button" class="btn" data-op="${o}" disabled>${OPS[o].label}</button>`).join('')}</div></div></div>
+   <div class="phase locked" data-ph="3"><span class="stepnum">3</span><div><b>Check.</b>
+     <div class="result" hidden><div class="eq" data-r="eq"></div>
+       <div class="dh-out"><span>ΔH =</span><span class="big num" data-r="dh"></span><span data-r="tag"></span></div>
+       <ol class="trace" data-r="trace"></ol>
+       <div class="diagram" data-r="dia"></div>
+       <p class="feedback" data-r="fb"></p>
+       <div class="row"><button type="button" class="btn ghost" data-r="again" hidden>Try again</button></div></div></div></div>`;
+  track(key,S.title,1,'correct');
+  reset(sec,key);
+  const inp=sec.querySelector('input');
+  inp.addEventListener('input',()=>{const has=inp.value.trim()!==''&&!isNaN(+inp.value);
+    if(SS[key].locked)return;
+    sec.querySelector('[data-ph="2"]').classList.toggle('locked',!has);
+    sec.querySelectorAll('[data-op]').forEach(b=>b.disabled=!has);});
+  sec.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click',()=>press(sec,key,b)));
+  sec.querySelector('[data-r="again"]').addEventListener('click',()=>{reset(sec,key);sec.querySelector('input').focus();});
+}
+function reset(sec,key){
+  SS[key]={s:{...START},pressed:[],locked:false,done:SS[key]?.done||false};
+  const inp=sec.querySelector('input');inp.value='';inp.disabled=false;
+  sec.querySelector('[data-ph="2"]').classList.add('locked');sec.querySelector('[data-ph="3"]').classList.add('locked');
+  sec.querySelectorAll('[data-op]').forEach(b=>{b.disabled=true;b.classList.remove('ghost');});
+  sec.querySelector('.result').hidden=true;
+}
+function press(sec,key,btn){
+  const st=SS[key],S=STEPS[key],op=btn.dataset.op;
+  if(st.pressed.includes(op))return;
+  st.locked=true;sec.querySelector('input').disabled=true;
+  st.s=OPS[op].apply(st.s);st.pressed.push(op);
+  btn.disabled=true;btn.classList.add('ghost');
+  const v=dhOf(st.s),res=sec.querySelector('.result');
+  sec.querySelector('[data-ph="3"]').classList.remove('locked');res.hidden=false;
+  const eq=res.querySelector('[data-r="eq"]');eq.textContent=eqOf(st.s);eq.classList.remove('flash');void eq.offsetWidth;eq.classList.add('flash');
+  res.querySelector('[data-r="dh"]').textContent=dhFmt(v);
+  res.querySelector('[data-r="tag"]').innerHTML=tagOf(v);
+  res.querySelector('[data-r="dia"]').innerHTML=diagram(v);
+  const tr=res.querySelector('[data-r="trace"]');
+  tr.hidden=S.ops.length<2;
+  let run={...START};tr.innerHTML=st.pressed.map(o=>{const before=dhFmt(dhOf(run));run=OPS[o].apply(run);return `<li>${OPS[o].label}: ${before} → ${dhFmt(dhOf(run))}</li>`;}).join('');
+  const fb=res.querySelector('[data-r="fb"]'),again=res.querySelector('[data-r="again"]');
+  if(st.pressed.length<S.ops.length){fb.className='feedback info';fb.innerHTML='Good. Now press the other button.';again.hidden=true;return;}
+  // all buttons pressed: check the prediction
+  tryOnce(key);
+  const p=+sec.querySelector('input').value,want=v,ok=Math.abs(p-want)<=Math.max(0.05,Math.abs(want)*0.005);
+  if(ok){st.done=true;setScore(key,1);fb.className='feedback ok';fb.innerHTML='✓ Correct! '+S.why;again.hidden=true;}
+  else{
+    let hint='Check your rule.';
+    if(Math.abs(p+want)<=Math.max(0.05,Math.abs(want)*0.005))hint='The number is right, but check the <b>sign</b> (+ or −).';
+    else if(Math.sign(p)===Math.sign(want))hint='The sign is right, but check the <b>number</b>.';
+    fb.className='feedback bad';fb.innerHTML=`Not quite. You predicted ${dhFmt(p)}. ${hint} ${S.why}`;again.hidden=false;
+  }
+  paintProgress();
+}
+
+// ---------- slide deck ----------
+const slides=[...document.querySelectorAll('section.slide')];
+let cur=0;const seen=new Set([0]);
+function paintProgress(){
+  const nav=document.getElementById('progress');
+  nav.innerHTML=slides.map((s,i)=>{const k=s.dataset.step;const cls=[seen.has(i)?'seen':'',k&&SS[k]&&SS[k].done?'ok':''].join(' ');
+    return `<button type="button" class="${cls}" data-i="${i}" ${i===cur?'aria-current="step"':''} aria-label="Screen ${i+1}: ${s.dataset.name}"><span>${s.dataset.name}</span></button>`;}).join('');
+  nav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.i)));
+}
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));seen.add(cur);
+  slides.forEach((s,j)=>s.hidden=j!==cur);
+  document.getElementById('prev').disabled=cur===0;
+  const nx=document.getElementById('next');nx.disabled=cur===slides.length-1;
+  nx.textContent=cur===slides.length-2?'Finish →':'Next →';
+  document.getElementById('count').textContent=`${cur+1} / ${slides.length}`;
+  if(slides[cur].id==='s-results')renderResults();
+  try{history.replaceState(null,'','#'+(cur+1));}catch(e){}
+  paintProgress();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.getElementById('prev').addEventListener('click',()=>go(cur-1));
+document.getElementById('next').addEventListener('click',()=>go(cur+1));
+document.addEventListener('keydown',e=>{if(e.target.matches('input'))return;if(e.key==='ArrowRight')go(cur+1);if(e.key==='ArrowLeft')go(cur-1);});
+
+// results slide wiring (card markup comes from renderResults)
+function setupResultsSlide(){
+  const n=document.getElementById('rName'),c=document.getElementById('rClass');
+  n.value=store('labName');c.value=store('labClass');
+  n.addEventListener('input',()=>{store('labName',n.value);renderResults();});
+  c.addEventListener('input',()=>{store('labClass',c.value);renderResults();});
+}
+
+document.getElementById('baseEq').textContent=eqOf(START);
+document.getElementById('baseDh').textContent=dhFmt(dhOf(START));
+slides.forEach(s=>{if(s.dataset.step)buildStep(s,s.dataset.step);});
+setupResultsSlide();
+const h=parseInt((location.hash||'').slice(1),10);
+go(h>=1&&h<=slides.length?h-1:0);
 </script>
-
 </html>
