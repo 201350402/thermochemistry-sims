@@ -188,6 +188,20 @@ html.deck-mode .deck{width:1280px;height:720px;position:fixed;left:50%;top:50%;t
 .foot .count{font-family:var(--f-num);color:var(--muted);font-size:.7rem}
 .foot .src{font-size:.55rem;color:var(--muted);text-align:center}
 .foot .btn{font-size:.8rem;padding:9px 18px;min-width:120px}
+.down{font-size:.75rem;color:var(--accent);font-weight:600;margin:-4px 0 -6px}
+.down span{color:var(--muted);font-weight:500}
+.co{color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent);border-radius:5px;padding:0 3px;font-weight:700}
+.sw{border-bottom:2px dashed var(--accent)}
+.neweq{border:2px solid var(--accent)}
+.big.unk{color:var(--muted)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{font:500 .78rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer;text-align:left}
+.choice[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.choice:disabled{cursor:default}
+.linkbtn{font:600 .72rem var(--f-body);color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.panel .feedback{margin:0}
 .rotate{display:none}
 /* phone held upright: stack instead of shrinking the slide to an unreadable size */
 html:not(.deck-mode) body{padding:12px}
@@ -197,13 +211,14 @@ html:not(.deck-mode) .slide{grid-template-columns:1fr;padding:16px;gap:18px}
 html:not(.deck-mode) .foot{padding:12px 16px}
 html:not(.deck-mode) .foot .src{display:none}
 html:not(.deck-mode) .chain{flex-wrap:wrap}
+html:not(.deck-mode) .choices{grid-template-columns:1fr}
 html:not(.deck-mode) .rotate{display:block;font-size:.8rem;color:var(--muted);text-align:center;margin:0 0 10px}
 html:not(.deck-mode) .progress button{font-size:.6rem}
 </style>
 <p class="rotate">Tip: turn your phone sideways for the slide view.</p>
 <div class="deck" id="deck">
   <div class="bar">
-    <div class="t"><h1 style="font:inherit;margin:0">Thermochemical Equation Lab</h1><small>One equation · watch ΔH follow the rules</small></div>
+    <div class="t"><h1 style="font:inherit;margin:0">Thermochemical Equation Lab</h1><small>One equation · change the moles, work out ΔH</small></div>
     <nav class="progress" id="progress" aria-label="Lab steps"></nav>
     <span class="badge">Chapter 6.4 · Lesson 2</span>
   </div>
@@ -221,17 +236,17 @@ html:not(.deck-mode) .progress button{font-size:.6rem}
     </div>
     <div class="col">
       <div class="box"><h3>On every screen</h3>
-        <ol class="intro-list"><li><b>Predict</b> the new ΔH. Type it in.</li><li><b>Press</b> the button to change the equation.</li><li><b>Check</b> your answer on the right side.</li></ol></div>
+        <ol class="intro-list"><li><b>Look</b> at the new equation: which coefficients (moles) changed?</li><li><b>Choose</b> what happens to ΔH.</li><li><b>Work out</b> the new ΔH and press Check.</li></ol></div>
       <div class="box"><h3>Symbol key</h3>
         <dl class="sym"><dt>ΔH</dt><dd>enthalpy change, in kJ</dd><dt>−</dt><dd>heat released (exothermic)</dd><dt>+</dt><dd>heat absorbed (endothermic)</dd><dt>2, ½</dt><dd>coefficients: the big numbers in front of formulas</dd><dt>(g) (l)</dt><dd>gas, liquid</dd></dl></div>
-      <div class="box"><h3>Your 4 steps</h3>
-        <ol class="intro-list"><li>Multiply × 2</li><li>Reverse ⇄</li><li>Halve (× ½)</li><li>Challenge: reverse, then × 2</li></ol></div>
+      <div class="box"><h3>Remember</h3>
+        <ol class="intro-list"><li>Change the coefficients → ΔH changes by the <b>same factor</b>.</li><li>Reverse the equation → <b>same number, opposite sign</b>.</li></ol></div>
     </div>
   </section>
 
-  <section class="slide" data-step="mult" data-name="× 2" hidden></section>
-  <section class="slide" data-step="rev" data-name="Reverse" hidden></section>
-  <section class="slide" data-step="half" data-name="½" hidden></section>
+  <section class="slide" data-step="mult" data-name="Practice 1" hidden></section>
+  <section class="slide" data-step="rev" data-name="Practice 2" hidden></section>
+  <section class="slide" data-step="half" data-name="Practice 3" hidden></section>
   <section class="slide" data-step="chal" data-name="Challenge" hidden></section>
 
   <!-- Last slide: results card for Toddle -->
@@ -320,99 +335,123 @@ function dhFmt(v){return (v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+' kJ';}
 function tagOf(v){return v<0?'<span class="tag exo">EXOTHERMIC</span>':'<span class="tag endo">ENDOTHERMIC</span>';}
 
 // ---------- the four practice steps ----------
+// Each screen shows the equation with NEW mole coefficients. Students work out what happens to ΔH.
 const OPS={
-  x2:{label:'Multiply × 2',sym:'× 2',apply:s=>({...s,f:s.f*2}),note:'number × 2'},
-  d2:{label:'Divide ÷ 2 (× ½)',sym:'× ½',apply:s=>({...s,f:s.f/2}),note:'number ÷ 2'},
-  rev:{label:'Reverse ⇄',sym:'reverse',apply:s=>({...s,rev:!s.rev}),note:'sign flips'},
+  x2:{sym:'× 2',note:'number × 2',apply:s=>({...s,f:s.f*2})},
+  d2:{sym:'× ½',note:'number ÷ 2',apply:s=>({...s,f:s.f/2})},
+  rev:{sym:'reverse',note:'sign flips',apply:s=>({...s,rev:!s.rev})},
 };
+// same four choices on every screen (similar length, so the answer is not the longest)
+const CHOICES=[
+  {id:'x2',t:'ΔH × 2 (same sign)'},
+  {id:'d2',t:'ΔH ÷ 2 (same sign)'},
+  {id:'rev',t:'Same number, sign flips'},
+  {id:'revx2',t:'Sign flips and ΔH × 2'},
+];
 const STEPS={
-  mult:{kicker:'Step 1 · Rule: multiply',title:'Multiply the equation by 2',ops:['x2'],
-    rule:'<b>Rule:</b> multiply the equation by a number → multiply ΔH by the <b>same number</b>. The sign stays the same.',
-    job:'Burn <b>2 mol</b> of methane instead of 1. Every coefficient is multiplied by 2.',
-    why:'You doubled every coefficient, so ΔH doubles: 2 × (−890.4) = −1780.8 kJ. Still exothermic: twice the methane releases twice the heat.'},
-  rev:{kicker:'Step 2 · Rule: reverse',title:'Reverse the equation',ops:['rev'],
-    rule:'<b>Rule:</b> reverse the equation → <b>same number, opposite sign</b>. Exothermic becomes endothermic.',
-    job:'Turn the equation around: products become reactants, reactants become products.',
-    why:'Reversing keeps 890.4 but flips the sign: +890.4 kJ. Making methane from CO₂ and water would <b>absorb</b> the heat that burning releases.'},
-  half:{kicker:'Step 3 · Rule: multiply by ½',title:'Halve the equation (× ½)',ops:['d2'],
-    rule:'<b>Rule:</b> dividing by 2 is the same as multiplying by ½ → ΔH is <b>divided by 2</b>. The sign stays the same.',
-    job:'Burn only <b>½ mol</b> of methane. Every coefficient is divided by 2.',
-    why:'Half the methane releases half the heat: −890.4 ÷ 2 = −445.2 kJ. Still exothermic.'},
-  chal:{kicker:'Challenge · Two rules',title:'Reverse it, then multiply by 2',ops:['rev','x2'],
-    rule:'<b>Use both rules.</b> Do them one at a time: reverse (change the sign), then × 2 (double the number).',
-    job:'Press <b>both</b> buttons. You can press them in any order: the answer is the same.',
+  mult:{name:'Practice 1',change:'the moles changed',title:'Burn 2 mol of methane',ops:['x2'],ans:'x2',
+    job:'The coefficient of CH₄ changed from 1 to <b>2</b>. Every other coefficient changed too.',
+    hint:'Every coefficient was multiplied by the same number. Multiply ΔH by that number too. The sign stays the same.',
+    why:'Every coefficient × 2, so ΔH × 2: 2 × (−890.4) = −1780.8 kJ. Twice the methane releases twice the heat.'},
+  rev:{name:'Practice 2',change:'the reaction was reversed',title:'Run the reaction backwards',ops:['rev'],ans:'rev',
+    job:'The coefficients did <b>not</b> change, but the reactants and products <b>swapped sides</b>.',
+    hint:'When an equation is reversed, ΔH keeps the same number but changes its sign.',
+    why:'Reversed, so same number, opposite sign: +890.4 kJ. Making methane from CO₂ and water absorbs the heat that burning releases.'},
+  half:{name:'Practice 3',change:'the moles changed',title:'Burn only ½ mol of methane',ops:['d2'],ans:'d2',
+    job:'The coefficient of CH₄ changed from 1 to <b>½</b>. Every other coefficient changed too.',
+    hint:'Every coefficient was multiplied by ½ (divided by 2). Do the same to ΔH. The sign stays the same.',
+    why:'Every coefficient × ½, so ΔH ÷ 2: −890.4 ÷ 2 = −445.2 kJ. Half the methane releases half the heat.'},
+  chal:{name:'Challenge',change:'reversed, and the moles changed',title:'Make 2 mol of methane',ops:['rev','x2'],ans:'revx2',
+    job:'Look carefully: the sides <b>swapped</b> AND the coefficients <b>changed</b>. Two rules at once.',
+    hint:'Do one rule at a time. Reversed → flip the sign. Coefficients × 2 → multiply the number by 2.',
     why:'Reverse: −890.4 → +890.4 kJ. Then × 2: +890.4 × 2 = +1780.8 kJ. Endothermic, and twice as much heat.'},
 };
 const START={f:1,rev:false};
 const SS={}; // per-step state
-const order=['mult','rev','half','chal'];
+function targetOf(S){return S.ops.reduce((s,o)=>OPS[o].apply(s),{...START});}
+// equation with changed coefficients highlighted
+function eqHtml(s){
+  const side=a=>a.map(([c,x])=>{const k=coef(c*s.f);if(s.f===1)return k+chem(x);return k?`<b class="co">${k}</b>${chem(x)}`:`<b class="co">${chem(x)}</b>`;}).join(' + ');
+  const L=side(BASE.R),R=side(BASE.P);
+  return s.rev?`<span class="sw">${R}</span> → <span class="sw">${L}</span>`:`${L} → ${R}`;
+}
+function chainHtml(S){
+  let run={...START};const box=(x,last)=>`<span class="val ${dhOf(x)<0?'exo':'endo'}${last?' new':''}">${dhFmt(dhOf(x))}</span>`;
+  let h=box(run,false);
+  S.ops.forEach((o,i)=>{run=OPS[o].apply(run);h+=`<span class="op"><b>${OPS[o].sym}</b><i>⟶</i><small>${OPS[o].note}</small></span>`+box(run,i===S.ops.length-1);});
+  return h;
+}
 
 function buildStep(sec,key){
-  const S=STEPS[key];
+  const S=STEPS[key],T=targetOf(S);
   sec.innerHTML=`<div class="col">
-     <div><div class="kicker">${S.kicker}</div><h2>${S.title}</h2></div>
-     <p class="rule">${S.rule}</p>
+     <div><div class="kicker">${S.name}</div><h2>${S.title}</h2></div>
      <p class="lab-label">Starting equation</p><div class="eq">${eqOf(START)}</div>
      <div class="dh-out"><span>ΔH =</span><span class="big num">${dhFmt(dhOf(START))}</span></div>
+     <div class="down">⬇ <span>${S.change}</span></div>
+     <p class="lab-label">New equation${T.rev?' <span class="tag dok">sides swapped</span>':''}</p><div class="eq neweq">${eqHtml(T)}</div>
+     <div class="dh-out"><span>ΔH =</span><span class="big num unk">? kJ</span></div>
      <p class="job">${S.job}</p>
-     <div class="phase" data-ph="1"><span class="stepnum">1</span><div><b>Predict the new ΔH.</b>
-       <div class="predict"><label class="field" for="p-${key}" style="grid-template-columns:auto 1fr;align-items:center;gap:8px">ΔH (kJ) = <input type="number" step="any" inputmode="decimal" id="p-${key}" placeholder="e.g. −100"></label></div>
-       <span class="hint">Type a minus sign for heat released.</span></div></div>
-     <div class="phase locked" data-ph="2"><span class="stepnum">2</span><div><b>Press${S.ops.length>1?' both buttons':' the button'}.</b>
-       <div class="row ops">${S.ops.map(o=>`<button type="button" class="btn" data-op="${o}" disabled>${OPS[o].label}</button>`).join('')}</div></div></div>
    </div>
-   <div class="col"><div class="panel" data-ph="3">
-     <p class="empty" data-r="empty">③ Your new equation and ΔH appear here after you press ${S.ops.length>1?'both buttons':'the button'}.</p>
-     <div class="result" hidden style="display:grid;gap:10px">
-       <div class="kicker">③ Check</div>
-       <p class="lab-label">New equation</p><div class="eq" data-r="eq"></div>
-       <p class="lab-label">What happened to ΔH</p><div class="chain" data-r="chain"></div>
-       <div class="dh-out"><span>New ΔH =</span><span class="big num" data-r="dh"></span><span data-r="tag"></span></div>
-       <p class="feedback" data-r="fb"></p>
-       <div class="row"><button type="button" class="btn ghost" data-r="again" hidden>Try again</button></div></div></div></div>`;
-  track(key,S.title,1,'correct');
-  reset(sec,key);
-  const inp=sec.querySelector('input');
-  inp.addEventListener('input',()=>{const has=inp.value.trim()!==''&&!isNaN(+inp.value);
-    if(SS[key].locked)return;
-    sec.querySelector('[data-ph="2"]').classList.toggle('locked',!has);
-    sec.querySelectorAll('[data-op]').forEach(b=>b.disabled=!has);});
-  sec.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click',()=>press(sec,key,b)));
-  sec.querySelector('[data-r="again"]').addEventListener('click',()=>{reset(sec,key);sec.querySelector('input').focus();});
+   <div class="col"><div class="panel on">
+     <div class="phase"><span class="stepnum">1</span><div><b>What happens to ΔH?</b>
+       <div class="choices">${CHOICES.map(c=>`<button type="button" class="choice" data-c="${c.id}" aria-pressed="false">${c.t}</button>`).join('')}</div></div></div>
+     <div class="phase"><span class="stepnum">2</span><div><b>Work out the new ΔH.</b>
+       <div class="predict"><label class="field" for="p-${key}" style="grid-template-columns:auto 1fr;align-items:center;gap:8px">ΔH (kJ) = <input type="number" step="any" inputmode="decimal" id="p-${key}" placeholder="e.g. −100"></label>
+       <button type="button" class="btn" data-r="check" disabled>Check</button></div>
+       <span class="hint">Type a minus sign for heat released.</span></div></div>
+     <div class="row"><button type="button" class="linkbtn" data-r="hintbtn">Need a hint?</button></div>
+     <p class="feedback info" data-r="hint" hidden></p>
+     <div class="result" data-r="res" hidden>
+       <p class="lab-label">What happened to ΔH</p><div class="chain">${chainHtml(S)}</div>
+     </div>
+     <p class="feedback" data-r="fb" hidden></p>
+     <div class="row"><button type="button" class="btn ghost" data-r="again" hidden>Try again</button></div>
+   </div></div>`;
+  track(key,`${S.name}: ${S.title}`,1,'correct');
+  SS[key]={choice:null,tries:0,done:false,locked:false};
+  const inp=sec.querySelector('input'),chk=sec.querySelector('[data-r="check"]');
+  const ready=()=>{chk.disabled=SS[key].locked||!(SS[key].choice&&inp.value.trim()!==''&&!isNaN(+inp.value));};
+  sec.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>{if(SS[key].locked)return;
+    SS[key].choice=b.dataset.c;sec.querySelectorAll('.choice').forEach(x=>x.setAttribute('aria-pressed',x===b));ready();}));
+  inp.addEventListener('input',ready);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!chk.disabled)check(sec,key);});
+  chk.addEventListener('click',()=>check(sec,key));
+  sec.querySelector('[data-r="hintbtn"]').addEventListener('click',()=>{const h=sec.querySelector('[data-r="hint"]');h.innerHTML='<b>Hint:</b> '+S.hint;h.hidden=false;});
+  sec.querySelector('[data-r="again"]').addEventListener('click',()=>{
+    SS[key].locked=false;SS[key].choice=null;inp.value='';inp.disabled=false;
+    sec.querySelectorAll('.choice').forEach(x=>{x.setAttribute('aria-pressed','false');x.classList.remove('right','wrong');x.disabled=false;});
+    sec.querySelector('[data-r="fb"]').hidden=true;sec.querySelector('[data-r="again"]').hidden=true;ready();inp.focus();});
 }
-function reset(sec,key){
-  SS[key]={s:{...START},pressed:[],locked:false,done:SS[key]?.done||false};
-  const inp=sec.querySelector('input');inp.value='';inp.disabled=false;
-  sec.querySelector('[data-ph="2"]').classList.add('locked');sec.querySelector('.panel').classList.remove('on');sec.querySelector('[data-r="empty"]').hidden=false;
-  sec.querySelectorAll('[data-op]').forEach(b=>{b.disabled=true;b.classList.remove('ghost');});
-  sec.querySelector('.result').hidden=true;
-}
-function press(sec,key,btn){
-  const st=SS[key],S=STEPS[key],op=btn.dataset.op;
-  if(st.pressed.includes(op))return;
-  st.locked=true;sec.querySelector('input').disabled=true;
-  st.s=OPS[op].apply(st.s);st.pressed.push(op);
-  btn.disabled=true;btn.classList.add('ghost');
-  const v=dhOf(st.s),res=sec.querySelector('.result');
-  sec.querySelector('.panel').classList.add('on');sec.querySelector('[data-r="empty"]').hidden=true;res.hidden=false;
-  const eq=res.querySelector('[data-r="eq"]');eq.textContent=eqOf(st.s);eq.classList.remove('flash');void eq.offsetWidth;eq.classList.add('flash');
-  res.querySelector('[data-r="dh"]').textContent=dhFmt(v);
-  res.querySelector('[data-r="tag"]').innerHTML=tagOf(v);
-  let run={...START};const box=x=>`<span class="val ${dhOf(x)<0?'exo':'endo'}">${dhFmt(dhOf(x))}</span>`;
-  let html=box(run);
-  st.pressed.forEach((o,i)=>{run=OPS[o].apply(run);html+=`<span class="op"><b>${OPS[o].sym}</b><i>⟶</i><small>${OPS[o].note}</small></span>`+box(run).replace('class="val','class="val'+(i===st.pressed.length-1?' new':''));});
-  res.querySelector('[data-r="chain"]').innerHTML=html;
-  const fb=res.querySelector('[data-r="fb"]'),again=res.querySelector('[data-r="again"]');
-  if(st.pressed.length<S.ops.length){fb.className='feedback info';fb.innerHTML='Good. Now press the other button.';again.hidden=true;return;}
-  // all buttons pressed: check the prediction
-  tryOnce(key);
-  const p=+sec.querySelector('input').value,want=v,ok=Math.abs(p-want)<=Math.max(0.05,Math.abs(want)*0.005);
-  if(ok){st.done=true;setScore(key,1);fb.className='feedback ok';fb.innerHTML='✓ Correct! '+S.why;again.hidden=true;}
-  else{
-    let hint='Check your rule.';
-    if(Math.abs(p+want)<=Math.max(0.05,Math.abs(want)*0.005))hint='The number is right, but check the <b>sign</b> (+ or −).';
-    else if(Math.sign(p)===Math.sign(want))hint='The sign is right, but check the <b>number</b>.';
-    fb.className='feedback bad';fb.innerHTML=`Not quite. You predicted ${dhFmt(p)}. ${hint} ${S.why}`;again.hidden=false;
+function check(sec,key){
+  const S=STEPS[key],st=SS[key],want=dhOf(targetOf(S)),p=+sec.querySelector('input').value;
+  st.locked=true;st.tries++;tryOnce(key);
+  sec.querySelector('input').disabled=true;sec.querySelector('[data-r="check"]').disabled=true;
+  sec.querySelectorAll('.choice').forEach(x=>x.disabled=true);
+  const tol=Math.max(0.05,Math.abs(want)*0.005),numOk=Math.abs(p-want)<=tol,choiceOk=st.choice===S.ans;
+  const picked=sec.querySelector(`.choice[data-c="${st.choice}"]`);picked.classList.add(choiceOk?'right':'wrong');
+  const fb=sec.querySelector('[data-r="fb"]'),again=sec.querySelector('[data-r="again"]'),res=sec.querySelector('[data-r="res"]');
+  const q=sec.querySelector('.big.unk');
+  fb.hidden=false;
+  if(numOk&&choiceOk){
+    st.done=true;setScore(key,1);res.hidden=false;
+    q.textContent=dhFmt(want);q.classList.remove('unk');q.insertAdjacentHTML('afterend',tagOf(want));
+    fb.className='feedback ok';fb.innerHTML='✓ Correct! '+S.why;again.hidden=true;
+  }else{
+    let msg=[];
+    if(!choiceOk)msg.push('Look again at <b>what changed</b> in the equation.');
+    if(!numOk){
+      if(Math.abs(p+want)<=tol)msg.push('Your number is right, but check the <b>sign</b> (+ or −).');
+      else if(choiceOk)msg.push('Your rule is right. Check your <b>calculation</b>.');
+      else msg.push('Then check your ΔH.');
+    }
+    if(st.tries>=2){ // after two tries, show the worked answer
+      res.hidden=false;
+      fb.className='feedback bad';fb.innerHTML='Not quite. '+msg.join(' ')+' <br><b>Answer:</b> '+S.why;
+    }else{
+      fb.className='feedback bad';fb.innerHTML='Not quite. '+msg.join(' ')+' Press <b>Try again</b> or use the hint.';
+    }
+    again.hidden=false;
   }
   paintProgress();
 }
